@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Configurações · Casa Certa Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/admin.css">
+<style>
+.cfg-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:24px}
+.cfg-tab{padding:8px 18px;border-radius:99px;font-size:13px;font-weight:600;border:1.5px solid var(--border);color:var(--text3);background:transparent;cursor:pointer;transition:var(--tr)}
+.cfg-tab.active,.cfg-tab:hover{border-color:var(--g400);color:var(--g400);background:rgba(34,197,94,.08)}
+.cfg-panel{display:none}.cfg-panel.active{display:block}
+.cfg-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:640px){.cfg-row{grid-template-columns:1fr}}
+.cfg-row.col3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:768px){.cfg-row.col3{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="admin-layout" id="layout"></div>
+
+<script src="/admin/admin.js"></script>
+<script>
+(async () => {
+  const user = await authGuard();
+  if (!user) return;
+
+  document.getElementById('layout').innerHTML = renderSidebar() + `
+  <div class="main">
+    ${renderTopbar('Configurações', `<button class="btn btn-primary" onclick="salvarTudo()">💾 Salvar tudo</button>`)}
+    <div class="page-content">
+
+      <div class="cfg-tabs">
+        <button class="cfg-tab active" onclick="switchTab('contatos',this)">📞 Contatos</button>
+        <button class="cfg-tab" onclick="switchTab('hero',this)">🏠 Hero</button>
+        <button class="cfg-tab" onclick="switchTab('conteudo',this)">✏️ Conteúdo</button>
+        <button class="cfg-tab" onclick="switchTab('footer',this)">📄 Rodapé</button>
+        <button class="cfg-tab" onclick="switchTab('marquee',this)">📢 Marquee</button>
+      </div>
+
+      <!-- CONTATOS -->
+      <div class="cfg-panel active" id="tab-contatos">
+        <div class="form-card">
+          <h2 style="font-size:16px;font-weight:700;margin-bottom:20px">Contatos e redes sociais</h2>
+          <div class="cfg-row">
+            <div class="field"><label>WhatsApp Diogo <span style="color:var(--text3);font-weight:400">(DDI incluso, ex: 5588…)</span></label><input type="text" id="whatsapp_diogo" placeholder="5588981545786"></div>
+            <div class="field"><label>WhatsApp Salomão</label><input type="text" id="whatsapp_salomao" placeholder="5588997137356"></div>
+          </div>
+          <div class="cfg-row">
+            <div class="field"><label>Link Instagram</label><input type="url" id="instagram_url" placeholder="https://instagram.com/casacertaimoveis"></div>
+            <div class="field"><label>Link Facebook (opcional)</label><input type="url" id="facebook_url" placeholder="https://facebook.com/…"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HERO -->
+      <div class="cfg-panel" id="tab-hero">
+        <div class="form-card">
+          <h2 style="font-size:16px;font-weight:700;margin-bottom:20px">Seção Hero</h2>
+          <div class="cfg-row">
+            <div class="field"><label>Badge do Hero</label><input type="text" id="hero_badge" placeholder="2 Corretores · CRECI…"></div>
+            <div class="field"><label>Localização</label><input type="text" id="hero_localizacao" placeholder="QUIXADÁ – CE · Imóveis"></div>
+          </div>
+          <div class="cfg-row">
+            <div class="field"><label>Título Linha 1</label><input type="text" id="hero_titulo_linha1" placeholder="CASA"></div>
+            <div class="field"><label>Título Linha 2</label><input type="text" id="hero_titulo_linha2" placeholder="CERTA"></div>
+          </div>
+          <div class="section-divider">Stats</div>
+          <div class="cfg-row col3">
+            <div class="field"><label>Stat 1 — Número</label><input type="text" id="hero_stat_1_num" placeholder="10+"></div>
+            <div class="field"><label>Stat 1 — Label</label><input type="text" id="hero_stat_1_label" placeholder="Anos de exp."></div>
+            <div class="field"></div>
+            <div class="field"><label>Stat 2 — Número</label><input type="text" id="hero_stat_2_num" placeholder="500+"></div>
+            <div class="field"><label>Stat 2 — Label</label><input type="text" id="hero_stat_2_label" placeholder="Clientes"></div>
+            <div class="field"></div>
+            <div class="field"><label>Stat 3 — Número</label><input type="text" id="hero_stat_3_num" placeholder="4.9★"></div>
+            <div class="field"><label>Stat 3 — Label</label><input type="text" id="hero_stat_3_label" placeholder="Avaliação"></div>
+            <div class="field"></div>
+          </div>
+          <div class="cfg-row">
+            <div class="field"><label>Badge flutuante — Imóveis</label><input type="text" id="hero_badge_imoveis" placeholder="120+"></div>
+            <div class="field"><label>Badge flutuante — Chaves</label><input type="text" id="hero_badge_chaves" placeholder="500+"></div>
+          </div>
+          <div class="section-divider">Frases animadas</div>
+          <div class="field"><div class="field-hint" style="margin-bottom:8px">Uma frase por linha</div><textarea id="hero_frases_tipadas" rows="5" placeholder="casas com entrada facilitada&#10;terrenos escriturados&#10;apartamentos no centro"></textarea></div>
+        </div>
+      </div>
+
+      <!-- CONTEÚDO -->
+      <div class="cfg-panel" id="tab-conteudo">
+        <div class="form-card" style="margin-bottom:16px">
+          <h2 style="font-size:16px;font-weight:700;margin-bottom:20px">Como Funciona — Passos</h2>
+          <div id="passosFields"></div>
+        </div>
+        <div class="form-card">
+          <h2 style="font-size:16px;font-weight:700;margin-bottom:20px">Diferenciais</h2>
+          <div id="diferenciaisFields"></div>
+        </div>
+      </div>
+
+      <!-- RODAPÉ -->
+      <div class="cfg-panel" id="tab-footer">
+        <div class="form-card">
+          <h2 style="font-size:16px;font-weight:700;margin-bottom:20px">Rodapé</h2>
+          <div class="field" style="margin-bottom:16px"><label>Descrição da empresa</label><textarea id="footer_descricao" rows="3" placeholder="Especialistas em imóveis em Quixadá CE…"></textarea></div>
+          <div class="field"><label>Texto de Copyright</label><input type="text" id="footer_copyright" placeholder="© 2025 Casa Certa Imóveis…"></div>
+        </div>
+      </div>
+
+      <!-- MARQUEE -->
+      <div class="cfg-panel" id="tab-marquee">
+        <div class="form-card">
+          <h2 style="font-size:16px;font-weight:700;margin-bottom:8px">Faixa Rolante (Marquee)</h2>
+          <p style="font-size:13px;color:var(--text3);margin-bottom:20px">Um item por linha. Use emojis.</p>
+          <div class="field"><textarea id="marquee_itens" rows="8" placeholder="🏠 Imóveis em Quixadá&#10;✅ CRECI 28948 &amp; 15784&#10;⭐ 4.9 de avaliação"></textarea></div>
+        </div>
+      </div>
+
+    </div>
+  </div>`;
+
+  // Build dynamic fields
+  buildPassos();
+  buildDiferenciais();
+  await loadAll();
+})();
+
+/* ── TABS ── */
+function switchTab(id, btn) {
+  document.querySelectorAll('.cfg-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.cfg-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+}
+
+/* ── BUILD DYNAMIC FIELDS ── */
+function buildPassos() {
+  document.getElementById('passosFields').innerHTML = [1,2,3].map(n => `
+    <div class="cfg-row" style="margin-bottom:12px">
+      <div class="field"><label>Passo ${n} — Título</label><input type="text" id="passo_${n}_titulo"></div>
+      <div class="field"><label>Passo ${n} — Descrição</label><input type="text" id="passo_${n}_desc"></div>
+    </div>`).join('');
+}
+function buildDiferenciais() {
+  document.getElementById('diferenciaisFields').innerHTML = [1,2,3,4].map(n => `
+    <div class="cfg-row" style="margin-bottom:12px">
+      <div class="field"><label>Diferencial ${n} — Título</label><input type="text" id="diferencial_${n}_titulo"></div>
+      <div class="field"><label>Diferencial ${n} — Descrição</label><input type="text" id="diferencial_${n}_desc"></div>
+    </div>`).join('');
+}
+
+/* ── LOAD ── */
+async function loadAll() {
+  try {
+    const { data } = await apiFetch('/configuracoes');
+    const map = {};
+    (data || []).forEach(c => { try { map[c.chave] = JSON.parse(c.valor); } catch { map[c.chave] = c.valor; } });
+
+    const simples = [
+      'whatsapp_diogo','whatsapp_salomao','instagram_url','facebook_url',
+      'hero_badge','hero_localizacao','hero_titulo_linha1','hero_titulo_linha2',
+      'hero_stat_1_num','hero_stat_1_label','hero_stat_2_num','hero_stat_2_label',
+      'hero_stat_3_num','hero_stat_3_label','hero_badge_imoveis','hero_badge_chaves',
+      'footer_descricao','footer_copyright'
+    ];
+    simples.forEach(k => { const el = document.getElementById(k); if (el && map[k] != null) el.value = map[k]; });
+
+    [1,2,3].forEach(n => ['titulo','desc'].forEach(f => {
+      const el = document.getElementById(`passo_${n}_${f}`);
+      if (el && map[`passo_${n}_${f}`]) el.value = map[`passo_${n}_${f}`];
+    }));
+    [1,2,3,4].forEach(n => ['titulo','desc'].forEach(f => {
+      const el = document.getElementById(`diferencial_${n}_${f}`);
+      if (el && map[`diferencial_${n}_${f}`]) el.value = map[`diferencial_${n}_${f}`];
+    }));
+
+    const frases = document.getElementById('hero_frases_tipadas');
+    if (frases && Array.isArray(map.hero_frases_tipadas)) frases.value = map.hero_frases_tipadas.join('\n');
+
+    const marquee = document.getElementById('marquee_itens');
+    if (marquee && Array.isArray(map.marquee_itens)) marquee.value = map.marquee_itens.join('\n');
+  } catch (e) { toast('Erro ao carregar configurações', 'error'); }
+}
+
+/* ── SAVE ── */
+async function salvarTudo() {
+  const btn = document.querySelector('.btn-primary');
+  btn.disabled = true; btn.textContent = 'Salvando…';
+  try {
+    const saves = [];
+    const put = (chave, valor) => saves.push(apiFetch(`/configuracoes/${chave}`, {
+      method: 'PUT', body: JSON.stringify({ valor: typeof valor === 'object' ? JSON.stringify(valor) : valor })
+    }));
+
+    ['whatsapp_diogo','whatsapp_salomao','instagram_url','facebook_url',
+     'hero_badge','hero_localizacao','hero_titulo_linha1','hero_titulo_linha2',
+     'hero_stat_1_num','hero_stat_1_label','hero_stat_2_num','hero_stat_2_label',
+     'hero_stat_3_num','hero_stat_3_label','hero_badge_imoveis','hero_badge_chaves',
+     'footer_descricao','footer_copyright'].forEach(k => {
+       const el = document.getElementById(k); if (el) put(k, el.value);
+    });
+
+    [1,2,3].forEach(n => ['titulo','desc'].forEach(f => {
+      const el = document.getElementById(`passo_${n}_${f}`); if (el) put(`passo_${n}_${f}`, el.value);
+    }));
+    [1,2,3,4].forEach(n => ['titulo','desc'].forEach(f => {
+      const el = document.getElementById(`diferencial_${n}_${f}`); if (el) put(`diferencial_${n}_${f}`, el.value);
+    }));
+
+    const frases = (document.getElementById('hero_frases_tipadas').value || '').split('\n').map(s=>s.trim()).filter(Boolean);
+    put('hero_frases_tipadas', frases);
+
+    const marquee = (document.getElementById('marquee_itens').value || '').split('\n').map(s=>s.trim()).filter(Boolean);
+    put('marquee_itens', marquee);
+
+    await Promise.all(saves);
+    toast('Configurações salvas!');
+  } catch (e) { toast(e.message || 'Erro ao salvar', 'error'); }
+  finally { btn.disabled = false; btn.textContent = '💾 Salvar tudo'; }
+}
+</script>
+</body>
+</html>

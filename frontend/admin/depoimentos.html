@@ -1,0 +1,123 @@
+<!-- DEPOIMENTOS -->
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Depoimentos · Casa Certa Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/admin.css">
+<style>
+.dep-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.dep-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r2);padding:20px}
+.dep-stars{color:var(--gold);font-size:16px;margin-bottom:10px}
+.dep-texto{font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:14px;font-style:italic}
+.dep-autor{font-weight:700;font-size:14px}
+.dep-cargo{font-size:12px;color:var(--text3)}
+.dep-actions{display:flex;gap:8px;margin-top:12px;border-top:1px solid var(--border);padding-top:12px}
+</style>
+</head>
+<body>
+<div class="admin-layout" id="layout"></div>
+
+<div class="modal-overlay" id="modalDep">
+  <div class="modal">
+    <div class="modal-header"><h3 class="modal-title" id="depModalTitle">Novo Depoimento</h3><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid" style="margin-bottom:0">
+        <input type="hidden" id="dId">
+        <div class="field"><label>Nome</label><input type="text" id="dNome" required placeholder="Ex: Maria Silva"></div>
+        <div class="field"><label>Cargo / Contexto</label><input type="text" id="dCargo" placeholder="Ex: Comprou casa em 2024"></div>
+        <div class="field"><label>Estrelas (1–5)</label><input type="number" id="dEstrelas" min="1" max="5" value="5"></div>
+        <div class="field" style="display:flex;align-items:center;gap:10px;padding-top:24px">
+          <label class="toggle"><input type="checkbox" id="dAtivo" checked><span class="toggle-slider"></span></label>
+          <span style="font-size:14px;font-weight:600">Ativo</span>
+        </div>
+        <div class="field" style="grid-column:1/-1"><label>Depoimento</label><textarea id="dTexto" rows="4" required placeholder="Texto do depoimento..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalDep')">Cancelar</button>
+      <button class="btn btn-primary" id="btnSalvarDep">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="/admin/admin.js"></script>
+<script>
+let deps = [], editingId = null;
+(async () => {
+  const user = await authGuard(); if (!user) return;
+  document.getElementById('layout').innerHTML = renderSidebar() + `
+  <div class="main">
+    ${renderTopbar('Depoimentos', `<button class="btn btn-primary" id="btnNovoDep">＋ Novo depoimento</button>`)}
+    <div class="page-content"><div class="dep-grid" id="depGrid"><div style="text-align:center;padding:40px"><div class="spinner"></div></div></div></div>
+  </div>`;
+  initSidebar('depoimentos'); populateUser(user); initModalClose();
+  document.getElementById('btnNovoDep').addEventListener('click', () => openForm(null));
+  document.getElementById('btnSalvarDep').addEventListener('click', salvar);
+  await carregar();
+})();
+
+async function carregar() {
+  try { const r = await apiFetch('/depoimentos'); deps = r.data||[]; renderGrid(); }
+  catch { toast('Erro ao carregar', 'error'); }
+}
+
+function renderGrid() {
+  const g = document.getElementById('depGrid');
+  if (!deps.length) { g.innerHTML=`<div style="grid-column:1/-1"><div class="empty-state"><div class="empty-state-icon">⭐</div><div class="empty-state-title">Nenhum depoimento</div></div></div>`; return; }
+  g.innerHTML = deps.map(d => `
+    <div class="dep-card">
+      <div class="dep-stars">${'★'.repeat(d.estrelas||5)}</div>
+      <div class="dep-texto">"${d.texto}"</div>
+      <div class="dep-autor">${d.nome}</div>
+      <div class="dep-cargo">${d.cargo||''}</div>
+      ${!d.ativo ? `<span class="badge badge-inativo" style="margin-top:6px">Inativo</span>` : ''}
+      <div class="dep-actions">
+        <button class="btn btn-ghost btn-sm" style="flex:1" onclick="openForm('${d.id}')">✏️ Editar</button>
+        <button class="btn btn-danger btn-sm btn-icon" onclick="excluir('${d.id}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function openForm(id) {
+  editingId = id;
+  document.getElementById('dId').value = '';
+  document.getElementById('dNome').value = '';
+  document.getElementById('dCargo').value = '';
+  document.getElementById('dTexto').value = '';
+  document.getElementById('dEstrelas').value = 5;
+  document.getElementById('dAtivo').checked = true;
+  document.getElementById('depModalTitle').textContent = id ? 'Editar Depoimento' : 'Novo Depoimento';
+  if (id) {
+    const d = deps.find(x => x.id===id); if (!d) return;
+    document.getElementById('dId').value = d.id;
+    document.getElementById('dNome').value = d.nome||'';
+    document.getElementById('dCargo').value = d.cargo||'';
+    document.getElementById('dTexto').value = d.texto||'';
+    document.getElementById('dEstrelas').value = d.estrelas||5;
+    document.getElementById('dAtivo').checked = d.ativo!==false;
+  }
+  openModal('modalDep');
+}
+
+async function salvar() {
+  const btn = document.getElementById('btnSalvarDep');
+  btn.disabled=true; btn.textContent='Salvando...';
+  const p = { nome:document.getElementById('dNome').value, cargo:document.getElementById('dCargo').value, texto:document.getElementById('dTexto').value, estrelas:Number(document.getElementById('dEstrelas').value)||5, ativo:document.getElementById('dAtivo').checked };
+  try {
+    if (editingId) { await apiFetch(`/depoimentos/${editingId}`,{method:'PUT',body:JSON.stringify(p)}); toast('Atualizado!'); }
+    else { await apiFetch('/depoimentos',{method:'POST',body:JSON.stringify(p)}); toast('Criado!'); }
+    closeModal('modalDep'); await carregar();
+  } catch(e) { toast(e.message,'error'); }
+  finally { btn.disabled=false; btn.textContent='Salvar'; }
+}
+
+async function excluir(id) {
+  if (!confirmDialog('Excluir este depoimento?')) return;
+  try { await apiFetch(`/depoimentos/${id}`,{method:'DELETE'}); toast('Removido.'); await carregar(); }
+  catch(e) { toast(e.message,'error'); }
+}
+</script>
+</body>
+</html>

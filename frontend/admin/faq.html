@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FAQ · Casa Certa Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/admin.css">
+<style>
+.faq-list{display:flex;flex-direction:column;gap:12px}
+.faq-item{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r2);padding:20px;display:flex;gap:16px;align-items:flex-start}
+.faq-num{font-family:"Playfair Display",serif;font-size:22px;font-weight:900;color:var(--g400);flex-shrink:0;min-width:32px}
+.faq-body{flex:1;min-width:0}
+.faq-pergunta{font-weight:700;font-size:15px;margin-bottom:6px}
+.faq-resposta{font-size:14px;color:var(--text2);line-height:1.6}
+.faq-actions{display:flex;gap:6px;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="admin-layout" id="layout"></div>
+
+<div class="modal-overlay" id="modalFaq">
+  <div class="modal">
+    <div class="modal-header"><h3 class="modal-title" id="faqModalTitle">Nova Pergunta</h3><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="fqId">
+      <div class="form-grid col1" style="gap:16px">
+        <div class="field"><label>Pergunta</label><input type="text" id="fqPergunta" required placeholder="Ex: Como funciona o financiamento?"></div>
+        <div class="field"><label>Resposta</label><textarea id="fqResposta" rows="5" required placeholder="Resposta detalhada..."></textarea></div>
+        <div class="field" style="display:flex;align-items:center;gap:10px">
+          <label class="toggle"><input type="checkbox" id="fqAtivo" checked><span class="toggle-slider"></span></label>
+          <span style="font-size:14px;font-weight:600">Ativo no site</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalFaq')">Cancelar</button>
+      <button class="btn btn-primary" id="btnSalvarFaq">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="/admin/admin.js"></script>
+<script>
+let faqs = [], editingId = null;
+(async () => {
+  const user = await authGuard(); if (!user) return;
+  document.getElementById('layout').innerHTML = renderSidebar() + `
+  <div class="main">
+    ${renderTopbar('FAQ', `<button class="btn btn-primary" id="btnNovoFaq">＋ Nova pergunta</button>`)}
+    <div class="page-content"><div class="faq-list" id="faqList"><div style="text-align:center;padding:40px"><div class="spinner"></div></div></div></div>
+  </div>`;
+  initSidebar('faq'); populateUser(user); initModalClose();
+  document.getElementById('btnNovoFaq').addEventListener('click', () => openForm(null));
+  document.getElementById('btnSalvarFaq').addEventListener('click', salvar);
+  await carregar();
+})();
+
+async function carregar() {
+  try { const r = await apiFetch('/faq'); faqs = r.data||[]; renderList(); }
+  catch { toast('Erro ao carregar', 'error'); }
+}
+
+function renderList() {
+  const el = document.getElementById('faqList');
+  if (!faqs.length) { el.innerHTML=`<div class="empty-state"><div class="empty-state-icon">❓</div><div class="empty-state-title">Nenhuma pergunta cadastrada</div></div>`; return; }
+  el.innerHTML = faqs.map((f,i) => `
+    <div class="faq-item ${!f.ativo?'style="opacity:.5"':''}">
+      <div class="faq-num">${String(i+1).padStart(2,'0')}</div>
+      <div class="faq-body">
+        <div class="faq-pergunta">${f.pergunta}</div>
+        <div class="faq-resposta">${f.resposta}</div>
+        ${!f.ativo?`<span class="badge badge-inativo" style="margin-top:8px">Inativo</span>`:''}
+      </div>
+      <div class="faq-actions">
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="openForm('${f.id}')" title="Editar">✏️</button>
+        <button class="btn btn-danger btn-sm btn-icon" onclick="excluir('${f.id}')" title="Excluir">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function openForm(id) {
+  editingId = id;
+  document.getElementById('fqId').value=''; document.getElementById('fqPergunta').value='';
+  document.getElementById('fqResposta').value=''; document.getElementById('fqAtivo').checked=true;
+  document.getElementById('faqModalTitle').textContent = id ? 'Editar Pergunta' : 'Nova Pergunta';
+  if (id) {
+    const f = faqs.find(x=>x.id===id); if (!f) return;
+    document.getElementById('fqId').value=f.id; document.getElementById('fqPergunta').value=f.pergunta||'';
+    document.getElementById('fqResposta').value=f.resposta||''; document.getElementById('fqAtivo').checked=f.ativo!==false;
+  }
+  openModal('modalFaq');
+}
+
+async function salvar() {
+  const btn = document.getElementById('btnSalvarFaq');
+  btn.disabled=true; btn.textContent='Salvando...';
+  const p = { pergunta:document.getElementById('fqPergunta').value, resposta:document.getElementById('fqResposta').value, ativo:document.getElementById('fqAtivo').checked };
+  try {
+    if (editingId) { await apiFetch(`/faq/${editingId}`,{method:'PUT',body:JSON.stringify(p)}); toast('Atualizado!'); }
+    else { await apiFetch('/faq',{method:'POST',body:JSON.stringify(p)}); toast('Criado!'); }
+    closeModal('modalFaq'); await carregar();
+  } catch(e) { toast(e.message,'error'); }
+  finally { btn.disabled=false; btn.textContent='Salvar'; }
+}
+
+async function excluir(id) {
+  if (!confirmDialog('Excluir esta pergunta?')) return;
+  try { await apiFetch(`/faq/${id}`,{method:'DELETE'}); toast('Removido.'); await carregar(); }
+  catch(e) { toast(e.message,'error'); }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mídia da Home · Casa Certa Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/admin.css">
+<style>
+.config-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:24px;margin-bottom:24px}
+.config-card-title{font-family:"Playfair Display",serif;font-size:18px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.config-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.config-row:last-child{border-bottom:none}
+.config-row-label{font-size:14px;font-weight:600}
+.config-row-hint{font-size:12px;color:var(--text3);margin-top:2px}
+.config-row-control{display:flex;align-items:center;gap:10px}
+.config-row-control input[type="number"]{width:100px;padding:8px 12px;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-size:14px;text-align:center;outline:none}
+.config-row-control input:focus{border-color:var(--g400)}
+
+.media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
+.media-card{
+  background:var(--card);border:1.5px solid var(--border);border-radius:var(--r2);
+  overflow:hidden;transition:var(--tr);position:relative;
+}
+.media-card:hover{border-color:var(--border2)}
+.media-card.inactive{opacity:.5}
+.media-thumb{width:100%;height:130px;object-fit:cover;background:var(--bg3);display:block}
+.media-type-badge{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.7);color:#fff;border-radius:99px;font-size:10px;font-weight:700;padding:3px 8px}
+.media-order{position:absolute;top:10px;right:10px;background:rgba(34,197,94,.85);color:#fff;border-radius:99px;font-size:11px;font-weight:700;padding:3px 8px}
+.media-info{padding:12px}
+.media-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:8px}
+.media-actions{display:flex;gap:6px;align-items:center}
+.media-empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text3)}
+.media-empty-icon{font-size:48px;margin-bottom:14px}
+
+.upload-area{border:2px dashed var(--border2);border-radius:var(--r2);padding:40px;text-align:center;cursor:pointer;transition:var(--tr);background:var(--card);margin-bottom:24px}
+.upload-area:hover,.upload-area.drag{border-color:var(--g400);background:rgba(34,197,94,.04)}
+.upload-area-icon{font-size:42px;margin-bottom:12px}
+.upload-area-title{font-size:16px;font-weight:600;margin-bottom:6px}
+.upload-area-hint{font-size:13px;color:var(--text3)}
+.upload-progress{margin-top:12px;display:none}
+.progress-bar-wrap{height:6px;background:var(--bg3);border-radius:99px;overflow:hidden;margin-top:6px}
+.progress-bar-fill{height:100%;background:var(--g400);border-radius:99px;transition:width .3s}
+</style>
+</head>
+<body>
+<div class="admin-layout" id="layout"></div>
+
+<script src="/admin/admin.js"></script>
+<script>
+let midias = [];
+
+(async () => {
+  const user = await authGuard();
+  if (!user) return;
+
+  document.getElementById('layout').innerHTML = renderSidebar() + `
+  <div class="main">
+    ${renderTopbar('Mídia da Home', '')}
+    <div class="page-content">
+
+      <!-- Upload -->
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-area-icon">🖼️</div>
+        <div class="upload-area-title">Adicionar Imagens ou Vídeos</div>
+        <div class="upload-area-hint">Arraste arquivos aqui ou clique para selecionar · JPG, PNG, MP4, WEBM</div>
+        <div class="upload-progress" id="uploadProgress">
+          <div style="font-size:13px;color:var(--text3)" id="uploadProgressLabel">Fazendo upload...</div>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+        </div>
+        <input type="file" id="fileInput" accept="image/*,video/*" multiple style="display:none">
+      </div>
+
+      <!-- Config do Carrossel -->
+      <div class="config-card">
+        <div class="config-card-title">⚙️ Configurações do Carrossel</div>
+        <div class="config-row">
+          <div><div class="config-row-label">Autoplay</div><div class="config-row-hint">Avançar automaticamente entre as mídias</div></div>
+          <div class="config-row-control">
+            <label class="toggle"><input type="checkbox" id="cfgAutoplay" checked><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+        <div class="config-row">
+          <div><div class="config-row-label">Intervalo (ms)</div><div class="config-row-hint">Tempo entre cada mídia</div></div>
+          <div class="config-row-control">
+            <input type="number" id="cfgIntervalo" value="4000" min="1000" max="30000" step="500">
+            <span style="font-size:12px;color:var(--text3)">ms</span>
+          </div>
+        </div>
+        <div class="config-row">
+          <div><div class="config-row-label">Velocidade da transição (ms)</div><div class="config-row-hint">Duração do efeito de fade</div></div>
+          <div class="config-row-control">
+            <input type="number" id="cfgVelocidade" value="600" min="100" max="2000" step="100">
+            <span style="font-size:12px;color:var(--text3)">ms</span>
+          </div>
+        </div>
+        <div style="margin-top:16px;display:flex;justify-content:flex-end">
+          <button class="btn btn-primary" id="btnSalvarConfig">💾 Salvar configurações</button>
+        </div>
+      </div>
+
+      <!-- Grid de mídias -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h3 style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700">Mídias ativas <span id="totalMidias" style="color:var(--text3);font-size:14px;font-weight:400"></span></h3>
+        <span style="font-size:12px;color:var(--text3)">Arraste para reordenar</span>
+      </div>
+      <div class="media-grid" id="mediaGrid">
+        <div style="grid-column:1/-1;text-align:center;padding:40px"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>`;
+
+  initSidebar('midia');
+  populateUser(user);
+
+  // Upload
+  const uploadArea = document.getElementById('uploadArea');
+  const fileInput  = document.getElementById('fileInput');
+  uploadArea.addEventListener('click', () => fileInput.click());
+  uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('drag'); });
+  uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag'));
+  uploadArea.addEventListener('drop', e => { e.preventDefault(); uploadArea.classList.remove('drag'); handleUpload(e.dataTransfer.files); });
+  fileInput.addEventListener('change', () => handleUpload(fileInput.files));
+
+  // Save config
+  document.getElementById('btnSalvarConfig').addEventListener('click', salvarConfig);
+
+  await carregarMidias();
+  await carregarConfig();
+})();
+
+async function carregarMidias() {
+  try {
+    const res = await apiFetch('/midias-home');
+    midias = res.data || [];
+    document.getElementById('totalMidias').textContent = `(${midias.length})`;
+    renderGrid();
+  } catch { toast('Erro ao carregar mídias', 'error'); }
+}
+
+async function carregarConfig() {
+  try {
+    const res = await apiFetch('/configuracoes/carrossel');
+    if (res.data) {
+      document.getElementById('cfgAutoplay').checked   = res.data.autoplay !== false;
+      document.getElementById('cfgIntervalo').value    = res.data.intervalo_ms || 4000;
+      document.getElementById('cfgVelocidade').value   = res.data.velocidade_ms || 600;
+    }
+  } catch {}
+}
+
+function renderGrid() {
+  const grid = document.getElementById('mediaGrid');
+  if (!midias.length) {
+    grid.innerHTML = `<div class="media-empty"><div class="media-empty-icon">🖼️</div><div style="font-size:16px;color:var(--text2);margin-bottom:6px">Nenhuma mídia adicionada</div><div style="font-size:13px">Arraste imagens ou vídeos acima para começar</div></div>`;
+    return;
+  }
+  grid.innerHTML = midias.map((m, i) => `
+    <div class="media-card ${m.ativo ? '' : 'inactive'}" data-id="${m.id}">
+      <div class="media-type-badge">${m.tipo === 'video' ? '▶ Vídeo' : '🖼 Imagem'}</div>
+      <div class="media-order">#${i+1}</div>
+      ${m.tipo === 'video'
+        ? `<video class="media-thumb" src="${m.url}" muted preload="metadata"></video>`
+        : `<img class="media-thumb" src="${m.url}" alt="${m.titulo||''}" loading="lazy">`}
+      <div class="media-info">
+        <div class="media-title">${m.titulo || 'Sem título'}</div>
+        <div class="media-actions">
+          <label class="toggle" title="${m.ativo ? 'Desativar' : 'Ativar'}">
+            <input type="checkbox" ${m.ativo ? 'checked' : ''} onchange="toggleAtivo('${m.id}', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+          <button class="btn btn-ghost btn-sm btn-icon" onclick="moverCima('${m.id}')" title="Subir" ${i===0?'disabled':''}>↑</button>
+          <button class="btn btn-ghost btn-sm btn-icon" onclick="moverBaixo('${m.id}')" title="Descer" ${i===midias.length-1?'disabled':''}>↓</button>
+          <button class="btn btn-danger btn-sm btn-icon" onclick="removerMidia('${m.id}')" title="Remover">🗑️</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+async function handleUpload(files) {
+  const progressEl = document.getElementById('uploadProgress');
+  const fillEl     = document.getElementById('progressFill');
+  const labelEl    = document.getElementById('uploadProgressLabel');
+  progressEl.style.display = 'block';
+  let done = 0;
+
+  for (const file of files) {
+    const tipo = file.type.startsWith('video') ? 'video' : 'imagem';
+    labelEl.textContent = `Enviando ${done+1}/${files.length}: ${file.name}`;
+    try {
+      const uploaded = await apiUpload(file, 'midias');
+      await apiFetch('/midias-home', { method: 'POST', body: JSON.stringify({
+        tipo, url: uploaded.url, storage_path: uploaded.path,
+        titulo: file.name.replace(/\.[^.]+$/, ''),
+        ordem: midias.length + done,
+        ativo: true
+      })});
+      done++;
+      fillEl.style.width = `${(done / files.length) * 100}%`;
+    } catch(e) {
+      toast(`Erro em ${file.name}: ${e.message}`, 'error');
+      done++;
+    }
+  }
+
+  progressEl.style.display = 'none';
+  fillEl.style.width = '0%';
+  toast(`${done} arquivo(s) enviado(s) com sucesso!`);
+  await carregarMidias();
+}
+
+async function toggleAtivo(id, val) {
+  try {
+    await apiFetch(`/midias-home/${id}`, { method: 'PUT', body: JSON.stringify({ ativo: val }) });
+    const m = midias.find(m => m.id === id);
+    if (m) m.ativo = val;
+    renderGrid();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function moverCima(id) {
+  const idx = midias.findIndex(m => m.id === id);
+  if (idx <= 0) return;
+  [midias[idx-1], midias[idx]] = [midias[idx], midias[idx-1]];
+  await salvarOrdem();
+}
+
+async function moverBaixo(id) {
+  const idx = midias.findIndex(m => m.id === id);
+  if (idx >= midias.length-1) return;
+  [midias[idx], midias[idx+1]] = [midias[idx+1], midias[idx]];
+  await salvarOrdem();
+}
+
+async function salvarOrdem() {
+  renderGrid();
+  try {
+    await Promise.all(midias.map((m, i) =>
+      apiFetch(`/midias-home/${m.id}`, { method: 'PUT', body: JSON.stringify({ ordem: i }) })
+    ));
+    toast('Ordem atualizada!');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function removerMidia(id) {
+  if (!confirmDialog('Remover esta mídia do carrossel?')) return;
+  try {
+    await apiFetch(`/midias-home/${id}`, { method: 'DELETE' });
+    toast('Mídia removida.');
+    await carregarMidias();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function salvarConfig() {
+  const btn = document.getElementById('btnSalvarConfig');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+  try {
+    await apiFetch('/configuracoes/carrossel', { method: 'PUT', body: JSON.stringify({ valor: JSON.stringify({
+      autoplay: document.getElementById('cfgAutoplay').checked,
+      intervalo_ms: Number(document.getElementById('cfgIntervalo').value),
+      velocidade_ms: Number(document.getElementById('cfgVelocidade').value)
+    })})});
+    toast('Configurações do carrossel salvas!');
+  } catch(e) { toast(e.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = '💾 Salvar configurações'; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Leads · Casa Certa Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+<div class="admin-layout" id="layout"></div>
+<script src="/admin/admin.js"></script>
+<script>
+let contatos = [];
+(async () => {
+  const user = await authGuard(); if (!user) return;
+  document.getElementById('layout').innerHTML = renderSidebar() + `
+  <div class="main">
+    ${renderTopbar('Leads Recebidos', '')}
+    <div class="page-content">
+      <div class="stat-grid" id="statsLeads" style="margin-bottom:24px"></div>
+      <div class="table-wrap">
+        <div class="table-header">
+          <span class="table-title">Contatos</span>
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchLeads" placeholder="Buscar..." style="padding:9px 12px 9px 36px;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px;outline:none;width:200px">
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Nome</th><th>Telefone</th><th>E-mail</th><th>Imóvel</th><th>Origem</th><th>Data</th><th>Ação</th></tr></thead>
+          <tbody id="tbodyLeads"><tr><td colspan="7" style="text-align:center;padding:40px"><div class="spinner"></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>`;
+  initSidebar('contatos'); populateUser(user);
+  document.getElementById('searchLeads').addEventListener('input', renderTable);
+  await carregar();
+})();
+
+async function carregar() {
+  try { const r = await apiFetch('/contatos'); contatos = r.data||[]; renderStats(); renderTable(); }
+  catch { toast('Erro ao carregar leads', 'error'); }
+}
+
+function renderStats() {
+  const hoje = new Date().toDateString();
+  const hojeCount = contatos.filter(c => new Date(c.created_at).toDateString()===hoje).length;
+  document.getElementById('statsLeads').innerHTML = [
+    { icon:'📩', label:'Total de leads',   val: contatos.length },
+    { icon:'📅', label:'Recebidos hoje',   val: hojeCount },
+    { icon:'🏠', label:'Com imóvel vinc.', val: contatos.filter(c=>c.imovel_id).length },
+  ].map(s=>`<div class="stat-card"><div class="stat-card-icon">${s.icon}</div><div class="stat-card-val">${s.val}</div><div class="stat-card-label">${s.label}</div></div>`).join('');
+}
+
+function renderTable() {
+  const q = document.getElementById('searchLeads').value.toLowerCase();
+  const list = q ? contatos.filter(c=>`${c.nome} ${c.telefone} ${c.email}`.toLowerCase().includes(q)) : contatos;
+  const tbody = document.getElementById('tbodyLeads');
+  if (!list.length) { tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state" style="padding:40px"><div class="empty-state-icon">📩</div><div class="empty-state-title">Nenhum lead ainda</div></div></td></tr>`; return; }
+  tbody.innerHTML = list.map(c=>`
+    <tr>
+      <td><div style="font-weight:600">${c.nome||'—'}</div></td>
+      <td>${c.telefone||'—'}</td>
+      <td style="font-size:13px;color:var(--text3)">${c.email||'—'}</td>
+      <td style="font-size:12px;color:var(--text3)">${c.imovel_titulo||c.imovel_id||'—'}</td>
+      <td><span class="badge badge-ativo" style="font-size:10px">${c.origem||'site'}</span></td>
+      <td style="font-size:13px;color:var(--text3)">${fmtDate(c.created_at)}</td>
+      <td>
+        ${c.telefone?`<a href="https://wa.me/${c.telefone.replace(/\D/g,'')}" target="_blank" class="btn btn-ghost btn-sm">💬 WhatsApp</a>`:''}
+      </td>
+    </tr>`).join('');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard · Casa Certa Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/admin.css">
+<style>
+.dash-welcome{margin-bottom:28px}
+.dash-welcome h2{font-family:"Playfair Display",serif;font-size:28px;font-weight:800;margin-bottom:4px}
+.dash-welcome p{color:var(--text3);font-size:15px}
+.dash-welcome span{color:var(--g400)}
+
+.quick-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:32px}
+.quick-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--r2);
+  padding:22px;display:flex;flex-direction:column;gap:10px;
+  transition:var(--tr);text-decoration:none;color:inherit;
+}
+.quick-card:hover{border-color:var(--g400);transform:translateY(-2px);box-shadow:0 8px 28px rgba(34,197,94,.12)}
+.quick-card-icon{font-size:30px}
+.quick-card-label{font-size:13px;color:var(--text3)}
+.quick-card-val{font-family:"Playfair Display",serif;font-size:36px;font-weight:900;color:var(--text)}
+.quick-card-action{font-size:12px;color:var(--g400);font-weight:600;margin-top:auto}
+
+.recent-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:900px){.recent-grid{grid-template-columns:1fr}}
+.recent-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+.recent-card-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.recent-card-title{font-family:"Playfair Display",serif;font-size:17px;font-weight:700}
+.recent-card-body{padding:0}
+.recent-row{display:flex;align-items:center;gap:12px;padding:13px 22px;border-bottom:1px solid var(--border);font-size:14px}
+.recent-row:last-child{border-bottom:none}
+.recent-row-icon{font-size:22px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border-radius:10px;flex-shrink:0}
+.recent-row-info{flex:1;min-width:0}
+.recent-row-title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recent-row-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.recent-row-price{font-weight:700;color:var(--g400);white-space:nowrap}
+.empty-list{padding:32px;text-align:center;color:var(--text3);font-size:14px}
+</style>
+</head>
+<body>
+<div class="admin-layout" id="layout"></div>
+
+<script src="/admin/admin.js"></script>
+<script>
+(async () => {
+  const user = await authGuard();
+  if (!user) return;
+
+  document.getElementById('layout').innerHTML = renderSidebar() + `
+  <div class="main">
+    ${renderTopbar('Dashboard', `<a href="/" target="_blank" class="btn btn-ghost btn-sm">🌐 Ver site</a>`)}
+    <div class="page-content">
+      <div class="dash-welcome">
+        <h2>Olá, <span class="js-user-name">Admin</span> 👋</h2>
+        <p>Aqui está o resumo do seu site hoje.</p>
+      </div>
+
+      <div class="quick-grid" id="statsGrid">
+        <div class="quick-card"><div class="quick-card-icon">⏳</div><div class="quick-card-label">Carregando...</div></div>
+      </div>
+
+      <div class="recent-grid">
+        <div class="recent-card">
+          <div class="recent-card-header">
+            <span class="recent-card-title">Imóveis Recentes</span>
+            <a href="/admin/imoveis.html" class="btn btn-ghost btn-sm">Ver todos</a>
+          </div>
+          <div class="recent-card-body" id="recentImoveis"><div class="empty-list">Carregando...</div></div>
+        </div>
+        <div class="recent-card">
+          <div class="recent-card-header">
+            <span class="recent-card-title">Últimos Leads</span>
+            <a href="/admin/contatos.html" class="btn btn-ghost btn-sm">Ver todos</a>
+          </div>
+          <div class="recent-card-body" id="recentLeads"><div class="empty-list">Carregando...</div></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  initSidebar('dashboard');
+  populateUser(user);
+
+  // Load stats
+  const [imoveisRes, equipeRes, depoRes, contatosRes] = await Promise.all([
+    apiFetch('/imoveis').catch(() => ({ data: [] })),
+    apiFetch('/equipe').catch(() => ({ data: [] })),
+    apiFetch('/depoimentos').catch(() => ({ data: [] })),
+    apiFetch('/contatos').catch(() => ({ data: [] }))
+  ]);
+
+  const imoveis = imoveisRes.data || [];
+  const equipe  = equipeRes.data || [];
+  const contatos = contatosRes.data || [];
+
+  document.getElementById('statsGrid').innerHTML = [
+    { icon:'🏠', label:'Total de Imóveis',  val: imoveis.length,                                link:'/admin/imoveis.html',     action:'Gerenciar imóveis' },
+    { icon:'✅', label:'Imóveis Ativos',     val: imoveis.filter(i=>i.status==='ativo').length,  link:'/admin/imoveis.html',     action:'Ver ativos' },
+    { icon:'👥', label:'Corretores',          val: equipe.length,                                 link:'/admin/equipe.html',      action:'Gerenciar equipe' },
+    { icon:'📩', label:'Leads Recebidos',    val: contatos.length,                               link:'/admin/contatos.html',    action:'Ver leads' },
+  ].map(s => `
+    <a class="quick-card" href="${s.link}">
+      <div class="quick-card-icon">${s.icon}</div>
+      <div class="quick-card-label">${s.label}</div>
+      <div class="quick-card-val">${s.val}</div>
+      <div class="quick-card-action">${s.action} →</div>
+    </a>`).join('');
+
+  // Recent imoveis
+  const recIm = imoveis.slice(0,5);
+  document.getElementById('recentImoveis').innerHTML = recIm.length ? recIm.map(im => `
+    <div class="recent-row">
+      <div class="recent-row-icon">${im.emoji||'🏠'}</div>
+      <div class="recent-row-info">
+        <div class="recent-row-title">${im.titulo}</div>
+        <div class="recent-row-sub">${im.bairro||''} · <span class="badge badge-${im.tipo}">${im.tipo}</span></div>
+      </div>
+      <div class="recent-row-price">${fmtPreco(im.preco)}</div>
+    </div>`).join('') : '<div class="empty-list">Nenhum imóvel cadastrado ainda.</div>';
+
+  // Recent leads
+  const recLd = contatos.slice(0,5);
+  document.getElementById('recentLeads').innerHTML = recLd.length ? recLd.map(c => `
+    <div class="recent-row">
+      <div class="recent-row-icon">👤</div>
+      <div class="recent-row-info">
+        <div class="recent-row-title">${c.nome||'Sem nome'}</div>
+        <div class="recent-row-sub">${c.telefone||c.email||''} · ${fmtDate(c.created_at)}</div>
+      </div>
+    </div>`).join('') : '<div class="empty-list">Nenhum lead ainda.</div>';
+})();
+</script>
+</body>
+</html>

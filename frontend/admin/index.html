@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin · Casa Certa Imóveis</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g400:#22C55E;--g500:#16a34a;--g700:#065f46;--g900:#052e16;
+  --gold:#C8972F;
+  --bg:#070d09;--bg2:#0b1510;--bg3:#111f17;
+  --card:#111a14;--border:rgba(34,197,94,.12);--border2:rgba(34,197,94,.25);
+  --text:#f0fdf4;--text2:#a7c3b0;--text3:#5a7a65;
+  --r:14px;--r2:22px;--tr:all .3s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px}
+body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+/* bg shapes */
+body::before,body::after{content:'';position:fixed;border-radius:50%;pointer-events:none;z-index:0}
+body::before{width:700px;height:700px;background:radial-gradient(circle,rgba(34,197,94,.07) 0%,transparent 70%);top:-200px;right:-200px}
+body::after{width:500px;height:500px;background:radial-gradient(circle,rgba(200,151,47,.05) 0%,transparent 70%);bottom:-150px;left:-150px}
+
+.login-wrap{position:relative;z-index:1;width:100%;max-width:420px;padding:0 24px}
+
+.login-logo{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:36px}
+.login-logo-text{font-family:"Playfair Display",serif;font-size:26px;font-weight:800;letter-spacing:-.5px}
+.login-logo-text span{color:var(--g400)}
+.login-badge{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);background:var(--bg3);border:1px solid var(--border);border-radius:99px;padding:3px 10px;display:inline-block;margin-left:8px;vertical-align:middle}
+
+.login-card{background:var(--card);border:1px solid var(--border2);border-radius:var(--r2);padding:40px 36px;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.login-title{font-family:"Playfair Display",serif;font-size:28px;font-weight:800;margin-bottom:6px}
+.login-sub{font-size:14px;color:var(--text3);margin-bottom:32px}
+
+.field{margin-bottom:20px}
+.field label{display:block;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.field input{
+  width:100%;padding:13px 16px;background:var(--bg2);
+  border:1.5px solid var(--border);border-radius:var(--r);
+  color:var(--text);font-family:inherit;font-size:15px;
+  transition:var(--tr);outline:none;
+}
+.field input:focus{border-color:var(--g400);box-shadow:0 0 0 3px rgba(34,197,94,.12)}
+.field input::placeholder{color:var(--text3)}
+
+.btn-login{
+  width:100%;padding:14px;background:var(--g400);color:#fff;
+  border:none;border-radius:var(--r);font-family:inherit;
+  font-size:15px;font-weight:700;cursor:pointer;transition:var(--tr);
+  margin-top:8px;
+}
+.btn-login:hover{background:var(--g500);transform:translateY(-1px);box-shadow:0 8px 24px rgba(34,197,94,.3)}
+.btn-login:disabled{opacity:.6;cursor:not-allowed;transform:none}
+
+.login-error{
+  background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);
+  color:#f87171;border-radius:var(--r);padding:12px 14px;
+  font-size:13px;margin-bottom:20px;display:none;
+}
+.login-error.show{display:block}
+
+.login-back{text-align:center;margin-top:24px;font-size:13px;color:var(--text3)}
+.login-back a{color:var(--g400);text-decoration:none;font-weight:600}
+.login-back a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-logo">
+    <span class="login-logo-text">Casa<span>Certa</span></span>
+    <span class="login-badge">Admin</span>
+  </div>
+
+  <div class="login-card">
+    <h1 class="login-title">Bem-vindo de volta</h1>
+    <p class="login-sub">Acesse o painel administrativo</p>
+
+    <div class="login-error" id="loginError">E-mail ou senha incorretos. Tente novamente.</div>
+
+    <form id="loginForm">
+      <div class="field">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" placeholder="admin@casacerta.com.br" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-login" id="loginBtn">Entrar no painel</button>
+    </form>
+  </div>
+
+  <div class="login-back">
+    <a href="/">&larr; Voltar ao site</a>
+  </div>
+</div>
+
+<script>
+const form = document.getElementById('loginForm');
+const errEl = document.getElementById('loginError');
+const btn   = document.getElementById('loginBtn');
+
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  btn.disabled = true;
+  btn.textContent = 'Entrando...';
+  errEl.classList.remove('show');
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: document.getElementById('email').value,
+        password: document.getElementById('senha').value
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Erro');
+    localStorage.setItem('cc_token', data.token);
+    window.location.href = '/admin/dashboard.html';
+  } catch (err) {
+    errEl.textContent = err.message || 'E-mail ou senha incorretos.';
+    errEl.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = 'Entrar no painel';
+  }
+});
+
+// Redirect if already logged in
+(async () => {
+  const token = localStorage.getItem('cc_token');
+  if (!token) return;
+  const ok = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.ok).catch(() => false);
+  if (ok) window.location.href = '/admin/dashboard.html';
+})();
+</script>
+</body>
+</html>

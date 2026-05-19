@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SEO · Casa Certa Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/admin.css">
+<style>
+.seo-preview{background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);padding:18px;font-size:14px;margin-top:16px}
+.seo-preview-url{color:#8ab4f8;font-size:12px;margin-bottom:4px}
+.seo-preview-title{color:#8ab4f8;font-size:18px;font-weight:400;margin-bottom:4px;text-decoration:underline}
+.seo-preview-desc{color:#bdc1c6;font-size:13px;line-height:1.5}
+.char-count{font-size:11px;color:var(--text3);text-align:right;margin-top:4px}
+.char-count.warn{color:var(--warn)} .char-count.danger{color:var(--danger)}
+</style>
+</head>
+<body>
+<div class="admin-layout" id="layout"></div>
+<script src="/admin/admin.js"></script>
+<script>
+const PAGINAS = [
+  { id:'home', label:'🏠 Home' },
+  { id:'imoveis', label:'🏘️ Imóveis' },
+  { id:'contato', label:'📞 Contato' },
+];
+let seoData = {}, paginaAtiva = 'home';
+
+(async () => {
+  const user = await authGuard(); if (!user) return;
+  document.getElementById('layout').innerHTML = renderSidebar() + `
+  <div class="main">
+    ${renderTopbar('SEO das Páginas', '')}
+    <div class="page-content">
+      <div style="display:flex;gap:8px;margin-bottom:24px">
+        ${PAGINAS.map(p=>`<button class="btn btn-ghost" data-pag="${p.id}" id="pagBtn-${p.id}">${p.label}</button>`).join('')}
+      </div>
+      <div class="form-card" id="seoForm">
+        <div class="form-grid col1" style="gap:18px">
+          <div class="field">
+            <label>Title da página <span style="color:var(--text3);font-weight:400">(máx 60 chars)</span></label>
+            <input type="text" id="seoTitle" maxlength="80" placeholder="Ex: Casa Certa Imóveis · Quixadá CE">
+            <div class="char-count" id="ccTitle">0/60</div>
+          </div>
+          <div class="field">
+            <label>Meta description <span style="color:var(--text3);font-weight:400">(máx 160 chars)</span></label>
+            <textarea id="seoDesc" maxlength="200" rows="3" placeholder="Descrição para os buscadores..."></textarea>
+            <div class="char-count" id="ccDesc">0/160</div>
+          </div>
+          <div class="field"><label>OG Title (redes sociais)</label><input type="text" id="seoOgTitle" placeholder="Igual ao title se vazio"></div>
+          <div class="field"><label>OG Description</label><textarea id="seoOgDesc" rows="2" placeholder="Igual à description se vazio"></textarea></div>
+          <div class="field"><label>URL canônica</label><input type="text" id="seoCanonical" placeholder="https://casacerta.com.br/"></div>
+          <div class="field"><label>OG Image URL</label><input type="text" id="seoOgImage" placeholder="https://..."></div>
+        </div>
+        <div class="section-divider" style="margin:24px 0">Preview Google</div>
+        <div class="seo-preview">
+          <div class="seo-preview-url" id="prevUrl">casacerta.com.br</div>
+          <div class="seo-preview-title" id="prevTitle">—</div>
+          <div class="seo-preview-desc" id="prevDesc">—</div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:24px">
+          <button class="btn btn-primary" id="btnSalvarSeo">💾 Salvar SEO</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  initSidebar('seo'); populateUser(user);
+
+  PAGINAS.forEach(p => document.getElementById(`pagBtn-${p.id}`).addEventListener('click', () => trocarPagina(p.id)));
+  document.getElementById('btnSalvarSeo').addEventListener('click', salvar);
+  ['seoTitle','seoDesc'].forEach(id => document.getElementById(id).addEventListener('input', atualizarPreview));
+  setupCharCount('seoTitle','ccTitle',60); setupCharCount('seoDesc','ccDesc',160);
+
+  await trocarPagina('home');
+})();
+
+function setupCharCount(inputId, countId, max) {
+  const inp = document.getElementById(inputId), cnt = document.getElementById(countId);
+  const update = () => {
+    const l = inp.value.length; cnt.textContent=`${l}/${max}`;
+    cnt.className='char-count'+(l>max?'danger':l>max*.85?' warn':'');
+  };
+  inp.addEventListener('input', update); update();
+}
+
+async function trocarPagina(id) {
+  paginaAtiva = id;
+  PAGINAS.forEach(p => document.getElementById(`pagBtn-${p.id}`)?.classList.toggle('btn-primary', p.id===id));
+  PAGINAS.forEach(p => document.getElementById(`pagBtn-${p.id}`)?.classList.toggle('btn-ghost', p.id!==id));
+  try {
+    const r = await apiFetch(`/seo/${id}`); const d = r.data||{};
+    document.getElementById('seoTitle').value = d.title||'';
+    document.getElementById('seoDesc').value = d.description||'';
+    document.getElementById('seoOgTitle').value = d.og_title||'';
+    document.getElementById('seoOgDesc').value = d.og_description||'';
+    document.getElementById('seoCanonical').value = d.canonical_url||'';
+    document.getElementById('seoOgImage').value = d.og_image_url||'';
+    atualizarPreview();
+  } catch {}
+}
+
+function atualizarPreview() {
+  document.getElementById('prevTitle').textContent = document.getElementById('seoTitle').value || '—';
+  document.getElementById('prevDesc').textContent = document.getElementById('seoDesc').value || '—';
+}
+
+async function salvar() {
+  const btn = document.getElementById('btnSalvarSeo'); btn.disabled=true; btn.textContent='Salvando...';
+  const p = { title:document.getElementById('seoTitle').value, description:document.getElementById('seoDesc').value, og_title:document.getElementById('seoOgTitle').value, og_description:document.getElementById('seoOgDesc').value, canonical_url:document.getElementById('seoCanonical').value, og_image_url:document.getElementById('seoOgImage').value };
+  try { await apiFetch(`/seo/${paginaAtiva}`,{method:'PUT',body:JSON.stringify(p)}); toast('SEO salvo!'); }
+  catch(e) { toast(e.message,'error'); }
+  finally { btn.disabled=false; btn.textContent='💾 Salvar SEO'; }
+}
+</script>
+</body>
+</html>

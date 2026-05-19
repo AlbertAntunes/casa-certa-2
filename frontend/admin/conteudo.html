@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Textos do Site · Casa Certa Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/admin.css">
+<style>
+.tabs{display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.tab{padding:10px 18px;font-size:14px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:var(--tr);background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}
+.tab.active{color:var(--g400);border-bottom-color:var(--g400)}
+.tab:hover{color:var(--text)}
+.tab-pane{display:none}.tab-pane.active{display:block}
+.group-title{font-family:"Playfair Display",serif;font-size:20px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.config-fields{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:24px;display:flex;flex-direction:column;gap:18px;margin-bottom:20px}
+.array-editor{display:flex;flex-direction:column;gap:8px}
+.array-item{display:flex;gap:8px;align-items:center}
+.array-item input{flex:1;padding:9px 12px;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);font-size:14px;outline:none}
+.array-item input:focus{border-color:var(--g400)}
+.btn-remove-item{font-size:16px;color:var(--text3);padding:4px 8px;transition:color .2s}
+.btn-remove-item:hover{color:var(--danger)}
+.btn-add-item{font-size:13px;color:var(--g400);font-weight:600;padding:6px 0;display:inline-flex;align-items:center;gap:4px}
+.save-bar{position:sticky;bottom:0;background:rgba(7,13,9,.9);backdrop-filter:blur(10px);border-top:1px solid var(--border);padding:14px 28px;display:flex;justify-content:flex-end;gap:10px;margin:0 -28px;z-index:50}
+</style>
+</head>
+<body>
+<div class="admin-layout" id="layout"></div>
+
+<script src="/admin/admin.js"></script>
+<script>
+let configs = {};
+
+const GRUPOS = [
+  { id:'hero',     label:'🏠 Hero',        chaves:['hero_titulo_linha1','hero_titulo_linha2','hero_badge','hero_localizacao','hero_stat_1_num','hero_stat_1_label','hero_stat_2_num','hero_stat_2_label','hero_stat_3_num','hero_stat_3_label','hero_badge_imoveis','hero_badge_chaves'] },
+  { id:'frases',   label:'✍️ Frases',      chaves:['hero_frases_tipadas'], array:true },
+  { id:'marquee',  label:'📣 Faixa',       chaves:['marquee_itens'], array:true },
+  { id:'diferenciais', label:'⭐ Diferenciais', chaves:['diferencial_1_titulo','diferencial_1_desc','diferencial_2_titulo','diferencial_2_desc','diferencial_3_titulo','diferencial_3_desc','diferencial_4_titulo','diferencial_4_desc'] },
+  { id:'passos',   label:'📋 Como Funciona', chaves:['passo_1_titulo','passo_1_desc','passo_2_titulo','passo_2_desc','passo_3_titulo','passo_3_desc'] },
+  { id:'contato',  label:'📞 Contato',     chaves:['whatsapp_diogo','whatsapp_salomao','instagram_url','email_contato','horario_atendimento'] },
+  { id:'footer',   label:'🦶 Rodapé',      chaves:['footer_descricao','footer_copyright','footer_endereco'] },
+];
+
+const LABELS = {
+  hero_titulo_linha1:'Título linha 1', hero_titulo_linha2:'Título linha 2',
+  hero_badge:'Badge (CRECI)', hero_localizacao:'Localização',
+  hero_stat_1_num:'Stat 1 – Número', hero_stat_1_label:'Stat 1 – Label',
+  hero_stat_2_num:'Stat 2 – Número', hero_stat_2_label:'Stat 2 – Label',
+  hero_stat_3_num:'Stat 3 – Número', hero_stat_3_label:'Stat 3 – Label',
+  hero_badge_imoveis:'Badge imóveis', hero_badge_chaves:'Badge chaves',
+  hero_frases_tipadas:'Frases do hero (uma por linha)',
+  marquee_itens:'Itens da faixa rolante (um por linha)',
+  diferencial_1_titulo:'Diferencial 1 – Título', diferencial_1_desc:'Diferencial 1 – Descrição',
+  diferencial_2_titulo:'Diferencial 2 – Título', diferencial_2_desc:'Diferencial 2 – Descrição',
+  diferencial_3_titulo:'Diferencial 3 – Título', diferencial_3_desc:'Diferencial 3 – Descrição',
+  diferencial_4_titulo:'Diferencial 4 – Título', diferencial_4_desc:'Diferencial 4 – Descrição',
+  passo_1_titulo:'Passo 1 – Título', passo_1_desc:'Passo 1 – Descrição',
+  passo_2_titulo:'Passo 2 – Título', passo_2_desc:'Passo 2 – Descrição',
+  passo_3_titulo:'Passo 3 – Título', passo_3_desc:'Passo 3 – Descrição',
+  whatsapp_diogo:'WhatsApp Diogo (DDI+DDD+número)',
+  whatsapp_salomao:'WhatsApp Salomão (DDI+DDD+número)',
+  instagram_url:'Instagram URL', email_contato:'E-mail de contato',
+  horario_atendimento:'Horário de atendimento',
+  footer_descricao:'Descrição no rodapé', footer_copyright:'Copyright', footer_endereco:'Endereço',
+};
+
+(async () => {
+  const user = await authGuard();
+  if (!user) return;
+
+  document.getElementById('layout').innerHTML = renderSidebar() + `
+  <div class="main">
+    ${renderTopbar('Textos do Site', '')}
+    <div class="page-content">
+      <div class="tabs" id="tabsBar"></div>
+      <div id="tabsContent"></div>
+      <div class="save-bar">
+        <button class="btn btn-ghost" onclick="location.reload()">↩ Reverter</button>
+        <button class="btn btn-primary" id="btnSalvarTudo">💾 Salvar alterações</button>
+      </div>
+    </div>
+  </div>`;
+
+  initSidebar('conteudo');
+  populateUser(user);
+
+  try {
+    const res = await apiFetch('/configuracoes');
+    (res.data || []).forEach(c => { configs[c.chave] = c.valor; });
+  } catch { toast('Erro ao carregar configurações', 'error'); }
+
+  renderTabs();
+  document.getElementById('btnSalvarTudo').addEventListener('click', salvarTudo);
+})();
+
+function renderTabs() {
+  const bar     = document.getElementById('tabsBar');
+  const content = document.getElementById('tabsContent');
+
+  bar.innerHTML = GRUPOS.map((g, i) =>
+    `<button class="tab ${i===0?'active':''}" data-tab="${g.id}">${g.label}</button>`).join('');
+
+  content.innerHTML = GRUPOS.map((g, i) => {
+    let html = '';
+    if (g.array) {
+      const key  = g.chaves[0];
+      let items = [];
+      try { items = JSON.parse(configs[key] || '[]'); } catch { items = (configs[key]||'').split('\n').filter(Boolean); }
+      html = `
+        <div class="group-title">${g.label}</div>
+        <div class="config-fields">
+          <div class="field">
+            <label>${LABELS[key]||key}</label>
+            <div class="array-editor" id="arr-${key}">
+              ${items.map((v,j) => arrayItemHtml(key,j,v)).join('')}
+            </div>
+            <button class="btn-add-item" onclick="addArrayItem('${key}')">＋ Adicionar item</button>
+          </div>
+        </div>`;
+    } else {
+      html = `
+        <div class="group-title">${g.label}</div>
+        <div class="config-fields">
+          ${g.chaves.map(key => {
+            const long = LABELS[key]?.includes('Descrição') || key.includes('desc') || key.includes('bio') || key.includes('copyright');
+            return `<div class="field">
+              <label>${LABELS[key]||key}</label>
+              ${long
+                ? `<textarea id="cfg-${key}" rows="3">${configs[key]||''}</textarea>`
+                : `<input type="text" id="cfg-${key}" value="${(configs[key]||'').replace(/"/g,'&quot;')}">`}
+            </div>`;
+          }).join('')}
+        </div>`;
+    }
+    return `<div class="tab-pane ${i===0?'active':''}" id="pane-${g.id}">${html}</div>`;
+  }).join('');
+
+  bar.addEventListener('click', e => {
+    const btn = e.target.closest('.tab');
+    if (!btn) return;
+    bar.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    content.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('pane-' + btn.dataset.tab)?.classList.add('active');
+  });
+}
+
+function arrayItemHtml(key, idx, val) {
+  return `<div class="array-item" data-idx="${idx}">
+    <input type="text" value="${val.replace(/"/g,'&quot;')}" placeholder="Item ${idx+1}">
+    <button class="btn-remove-item" onclick="this.closest('.array-item').remove()" title="Remover">✕</button>
+  </div>`;
+}
+
+function addArrayItem(key) {
+  const container = document.getElementById(`arr-${key}`);
+  const idx = container.children.length;
+  container.insertAdjacentHTML('beforeend', arrayItemHtml(key, idx, ''));
+}
+
+async function salvarTudo() {
+  const btn = document.getElementById('btnSalvarTudo');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+  const erros = [];
+
+  for (const grupo of GRUPOS) {
+    if (grupo.array) {
+      const key      = grupo.chaves[0];
+      const container = document.getElementById(`arr-${key}`);
+      const items    = [...container.querySelectorAll('input')].map(i => i.value.trim()).filter(Boolean);
+      try { await apiFetch(`/configuracoes/${key}`, { method:'PUT', body:JSON.stringify({ valor: JSON.stringify(items) })}); }
+      catch(e) { erros.push(key + ': ' + e.message); }
+    } else {
+      for (const key of grupo.chaves) {
+        const el = document.getElementById(`cfg-${key}`);
+        if (!el) continue;
+        try { await apiFetch(`/configuracoes/${key}`, { method:'PUT', body:JSON.stringify({ valor: el.value })}); }
+        catch(e) { erros.push(key + ': ' + e.message); }
+      }
+    }
+  }
+
+  if (erros.length) toast('Alguns erros: ' + erros.join(', '), 'error');
+  else toast('Textos do site salvos com sucesso!');
+  btn.disabled = false; btn.textContent = '💾 Salvar alterações';
+}
+</script>
+</body>
+</html>

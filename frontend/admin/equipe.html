@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Equipe · Casa Certa Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/admin.css">
+<style>
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+.team-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r2);padding:24px;transition:var(--tr)}
+.team-card:hover{border-color:var(--border2)}
+.team-avatar-wrap{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+.team-avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.team-avatar-placeholder{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;flex-shrink:0}
+.team-name{font-family:"Playfair Display",serif;font-size:18px;font-weight:700}
+.team-cargo{font-size:13px;color:var(--text3);margin-top:2px}
+.team-creci{display:inline-block;background:rgba(34,197,94,.1);color:var(--g400);border-radius:99px;font-size:11px;font-weight:700;padding:3px 10px;margin-top:6px}
+.team-stats{display:flex;gap:16px;padding:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:14px 0}
+.team-stat{text-align:center;flex:1}
+.team-stat-val{font-family:"Playfair Display",serif;font-size:20px;font-weight:800;color:var(--g400)}
+.team-stat-label{font-size:11px;color:var(--text3);margin-top:2px}
+.team-contacts{display:flex;gap:8px;font-size:12px;color:var(--text3);margin-bottom:14px;flex-wrap:wrap}
+.team-contacts span{display:flex;align-items:center;gap:4px}
+.team-actions{display:flex;gap:8px}
+</style>
+</head>
+<body>
+<div class="admin-layout" id="layout"></div>
+
+<div class="modal-overlay" id="modalEquipe">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modalTitleEq">Novo Corretor</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="formEquipe">
+        <input type="hidden" id="eqId">
+        <div class="form-grid" style="margin-bottom:16px">
+          <div class="field" style="grid-column:1/-1">
+            <label>Foto do Corretor</label>
+            <div style="display:flex;align-items:center;gap:14px">
+              <img id="eqFotoPreview" src="" style="width:72px;height:72px;border-radius:50%;object-fit:cover;display:none;background:var(--bg3)">
+              <div>
+                <label class="btn btn-ghost btn-sm" style="cursor:pointer">📷 Escolher foto<input type="file" id="eqFotoInput" accept="image/*" style="display:none"></label>
+                <div class="field-hint">JPG, PNG · Máx 2MB</div>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Nome completo</label>
+            <input type="text" id="eqNome" placeholder="Ex: Diogo Sousa" required>
+          </div>
+          <div class="field">
+            <label>Cargo</label>
+            <input type="text" id="eqCargo" placeholder="Corretor de Imóveis" value="Corretor de Imóveis">
+          </div>
+          <div class="field">
+            <label>CRECI</label>
+            <input type="text" id="eqCreci" placeholder="Ex: 28948-F">
+          </div>
+          <div class="field">
+            <label>Iniciais (avatar)</label>
+            <input type="text" id="eqIniciais" maxlength="2" placeholder="DS">
+          </div>
+          <div class="field">
+            <label>WhatsApp (com DDI)</label>
+            <input type="text" id="eqWhatsapp" placeholder="5588981545786">
+          </div>
+          <div class="field">
+            <label>Instagram</label>
+            <input type="text" id="eqInstagram" placeholder="https://instagram.com/...">
+          </div>
+          <div class="field">
+            <label>Anos de experiência</label>
+            <input type="number" id="eqAnos" min="0">
+          </div>
+          <div class="field">
+            <label>Clientes atendidos</label>
+            <input type="number" id="eqClientes" min="0">
+          </div>
+          <div class="field">
+            <label>Avaliação (0–5)</label>
+            <input type="number" id="eqAvaliacao" min="0" max="5" step="0.1" value="4.9">
+          </div>
+          <div class="field">
+            <label>Cor do avatar (CSS)</label>
+            <input type="text" id="eqCor" placeholder="linear-gradient(135deg,#22C55E,#065f46)">
+          </div>
+          <div class="field" style="grid-column:1/-1">
+            <label>Bio</label>
+            <textarea id="eqBio" placeholder="Apresentação do corretor..."></textarea>
+          </div>
+          <div class="field" style="display:flex;align-items:center;gap:10px">
+            <label class="toggle"><input type="checkbox" id="eqAtivo" checked><span class="toggle-slider"></span></label>
+            <span style="font-size:14px;font-weight:600">Corretor ativo</span>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalEquipe')">Cancelar</button>
+      <button class="btn btn-primary" id="btnSalvarEq">Salvar corretor</button>
+    </div>
+  </div>
+</div>
+
+<script src="/admin/admin.js"></script>
+<script>
+let equipe = [];
+let editingId = null;
+let novaFotoUrl = null;
+
+(async () => {
+  const user = await authGuard();
+  if (!user) return;
+
+  document.getElementById('layout').innerHTML = renderSidebar() + `
+  <div class="main">
+    ${renderTopbar('Equipe', `<button class="btn btn-primary" id="btnNovoCorretor">＋ Novo corretor</button>`)}
+    <div class="page-content">
+      <div class="team-grid" id="teamGrid">
+        <div style="text-align:center;padding:40px"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>`;
+
+  initSidebar('equipe');
+  populateUser(user);
+  initModalClose();
+
+  document.getElementById('btnNovoCorretor').addEventListener('click', () => openForm(null));
+  document.getElementById('btnSalvarEq').addEventListener('click', salvar);
+
+  // Foto preview
+  document.getElementById('eqFotoInput').addEventListener('change', async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const prev = document.getElementById('eqFotoPreview');
+      prev.src = ev.target.result; prev.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+    try {
+      const res = await apiUpload(file, 'equipe');
+      novaFotoUrl = res.url;
+      toast('Foto enviada!');
+    } catch(e) { toast(e.message, 'error'); }
+  });
+
+  await carregar();
+})();
+
+async function carregar() {
+  try {
+    const res = await apiFetch('/equipe');
+    equipe = res.data || [];
+    renderGrid();
+  } catch { toast('Erro ao carregar equipe', 'error'); }
+}
+
+function renderGrid() {
+  const grid = document.getElementById('teamGrid');
+  if (!equipe.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1"><div class="empty-state"><div class="empty-state-icon">👥</div><div class="empty-state-title">Nenhum corretor cadastrado</div></div></div>`;
+    return;
+  }
+  grid.innerHTML = equipe.map(c => `
+    <div class="team-card">
+      <div class="team-avatar-wrap">
+        ${c.foto_url
+          ? `<img class="team-avatar" src="${c.foto_url}" alt="${c.nome}">`
+          : `<div class="team-avatar-placeholder" style="background:${c.avatar_cor||'linear-gradient(135deg,#22C55E,#065f46)'}">${c.avatar_iniciais||c.nome?.slice(0,2)||'CC'}</div>`}
+        <div>
+          <div class="team-name">${c.nome}</div>
+          <div class="team-cargo">${c.cargo||'Corretor'}</div>
+          ${c.creci ? `<span class="team-creci">CRECI ${c.creci}</span>` : ''}
+        </div>
+      </div>
+      <div class="team-stats">
+        <div class="team-stat"><div class="team-stat-val">${c.anos_experiencia||0}+</div><div class="team-stat-label">Anos</div></div>
+        <div class="team-stat"><div class="team-stat-val">${c.clientes_atendidos||0}+</div><div class="team-stat-label">Clientes</div></div>
+        <div class="team-stat"><div class="team-stat-val">${c.avaliacao||4.9}★</div><div class="team-stat-label">Avaliação</div></div>
+      </div>
+      <div class="team-contacts">
+        ${c.whatsapp ? `<span>📱 ${c.whatsapp}</span>` : ''}
+        ${c.instagram ? `<span>📷 Instagram</span>` : ''}
+      </div>
+      <div class="team-actions">
+        <button class="btn btn-ghost btn-sm" style="flex:1" onclick="openForm('${c.id}')">✏️ Editar</button>
+        ${!c.ativo ? `<span class="badge badge-inativo">Inativo</span>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function openForm(id) {
+  editingId = id;
+  novaFotoUrl = null;
+  document.getElementById('formEquipe').reset();
+  document.getElementById('eqFotoPreview').style.display = 'none';
+  document.getElementById('modalTitleEq').textContent = id ? 'Editar Corretor' : 'Novo Corretor';
+  document.getElementById('eqCargo').value = 'Corretor de Imóveis';
+  document.getElementById('eqAvaliacao').value = '4.9';
+  document.getElementById('eqAtivo').checked = true;
+
+  if (id) {
+    const c = equipe.find(x => x.id === id);
+    if (!c) return;
+    document.getElementById('eqId').value = c.id;
+    document.getElementById('eqNome').value = c.nome || '';
+    document.getElementById('eqCargo').value = c.cargo || 'Corretor de Imóveis';
+    document.getElementById('eqCreci').value = c.creci || '';
+    document.getElementById('eqIniciais').value = c.avatar_iniciais || '';
+    document.getElementById('eqWhatsapp').value = c.whatsapp || '';
+    document.getElementById('eqInstagram').value = c.instagram || '';
+    document.getElementById('eqAnos').value = c.anos_experiencia || '';
+    document.getElementById('eqClientes').value = c.clientes_atendidos || '';
+    document.getElementById('eqAvaliacao').value = c.avaliacao || 4.9;
+    document.getElementById('eqCor').value = c.avatar_cor || '';
+    document.getElementById('eqBio').value = c.bio || '';
+    document.getElementById('eqAtivo').checked = c.ativo !== false;
+    if (c.foto_url) { const p = document.getElementById('eqFotoPreview'); p.src = c.foto_url; p.style.display = 'block'; novaFotoUrl = c.foto_url; }
+  }
+  openModal('modalEquipe');
+}
+
+async function salvar() {
+  const btn = document.getElementById('btnSalvarEq');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+  const payload = {
+    nome: document.getElementById('eqNome').value,
+    cargo: document.getElementById('eqCargo').value,
+    creci: document.getElementById('eqCreci').value,
+    avatar_iniciais: document.getElementById('eqIniciais').value || document.getElementById('eqNome').value.slice(0,2).toUpperCase(),
+    whatsapp: document.getElementById('eqWhatsapp').value,
+    instagram: document.getElementById('eqInstagram').value,
+    anos_experiencia: Number(document.getElementById('eqAnos').value)||0,
+    clientes_atendidos: Number(document.getElementById('eqClientes').value)||0,
+    avaliacao: Number(document.getElementById('eqAvaliacao').value)||4.9,
+    avatar_cor: document.getElementById('eqCor').value || 'linear-gradient(135deg,#22C55E,#065f46)',
+    bio: document.getElementById('eqBio').value,
+    ativo: document.getElementById('eqAtivo').checked,
+    foto_url: novaFotoUrl
+  };
+  try {
+    if (editingId) {
+      await apiFetch(`/equipe/${editingId}`, { method:'PUT', body:JSON.stringify(payload) });
+      toast('Corretor atualizado!');
+    } else {
+      await apiFetch('/equipe', { method:'POST', body:JSON.stringify(payload) });
+      toast('Corretor cadastrado!');
+    }
+    closeModal('modalEquipe');
+    await carregar();
+  } catch(e) { toast(e.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = 'Salvar corretor'; }
+}
+</script>
+</body>
+</html>

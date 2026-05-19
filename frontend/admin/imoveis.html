@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Imóveis · Casa Certa Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/admin.css">
+<style>
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
+.filter-btn{padding:7px 16px;border-radius:99px;font-size:13px;font-weight:600;border:1.5px solid var(--border);color:var(--text3);background:transparent;cursor:pointer;transition:var(--tr)}
+.filter-btn.active,.filter-btn:hover{border-color:var(--g400);color:var(--g400);background:rgba(34,197,94,.08)}
+.imovel-img{width:52px;height:40px;object-fit:cover;border-radius:8px;background:var(--bg3)}
+.img-placeholder{width:52px;height:40px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:20px}
+.form-photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin-top:10px}
+.photo-thumb{position:relative;border-radius:var(--r);overflow:hidden}
+.photo-thumb img{width:100%;height:80px;object-fit:cover}
+.photo-remove{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+</style>
+</head>
+<body>
+<div class="admin-layout" id="layout"></div>
+
+<!-- MODAL NOVO/EDITAR IMÓVEL -->
+<div class="modal-overlay" id="modalImovel">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modalTitle">Novo Imóvel</h3>
+      <button class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="formImovel">
+        <input type="hidden" id="fId">
+        <div class="form-grid" style="margin-bottom:16px">
+          <div class="field" style="grid-column:1/-1">
+            <label>Título</label>
+            <input type="text" id="fTitulo" placeholder="Ex: Casa com 3 quartos no Centro" required>
+          </div>
+          <div class="field">
+            <label>Tipo</label>
+            <select id="fTipo" required>
+              <option value="">Selecione</option>
+              <option value="venda">Venda</option>
+              <option value="aluguel">Aluguel</option>
+              <option value="terreno">Terreno</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <select id="fStatus">
+              <option value="ativo">Ativo</option>
+              <option value="vendido">Vendido/Alugado</option>
+              <option value="inativo">Inativo</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Preço (R$)</label>
+            <input type="number" id="fPreco" placeholder="Ex: 180000">
+          </div>
+          <div class="field">
+            <label>Período (aluguel)</label>
+            <input type="text" id="fPrecoPeriodo" placeholder="Ex: /mês">
+          </div>
+          <div class="field">
+            <label>Bairro</label>
+            <input type="text" id="fBairro" placeholder="Ex: Centro">
+          </div>
+          <div class="field">
+            <label>Cidade</label>
+            <input type="text" id="fCidade" value="Quixadá">
+          </div>
+          <div class="field">
+            <label>Quartos</label>
+            <input type="number" id="fQuartos" min="0">
+          </div>
+          <div class="field">
+            <label>Banheiros</label>
+            <input type="number" id="fBanheiros" min="0">
+          </div>
+          <div class="field">
+            <label>Vagas</label>
+            <input type="number" id="fVagas" min="0">
+          </div>
+          <div class="field">
+            <label>Metragem (m²)</label>
+            <input type="number" id="fMetragem" min="0">
+          </div>
+          <div class="field" style="grid-column:1/-1">
+            <label>Descrição</label>
+            <textarea id="fDescricao" placeholder="Descrição detalhada do imóvel..."></textarea>
+          </div>
+          <div class="field">
+            <label>Emoji</label>
+            <input type="text" id="fEmoji" maxlength="4" placeholder="🏠">
+          </div>
+          <div class="field" style="display:flex;align-items:center;gap:10px;padding-top:24px">
+            <label class="toggle"><input type="checkbox" id="fDestaque"><span class="toggle-slider"></span></label>
+            <span style="font-size:14px;font-weight:600">Imóvel em destaque</span>
+          </div>
+        </div>
+
+        <div class="section-divider">Fotos</div>
+        <div class="upload-zone" id="uploadZone">
+          <div class="upload-zone-icon">📷</div>
+          <div class="upload-zone-text">Clique ou arraste fotos aqui</div>
+          <div class="upload-zone-hint">JPG, PNG, WEBP · Múltiplas fotos permitidas</div>
+          <input type="file" id="fFotos" accept="image/*" multiple style="display:none">
+        </div>
+        <div class="form-photos" id="photosPreview"></div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalImovel')">Cancelar</button>
+      <button class="btn btn-primary" id="btnSalvar">Salvar imóvel</button>
+    </div>
+  </div>
+</div>
+
+<script src="/admin/admin.js"></script>
+<script>
+let imoveis = [];
+let filtroAtivo = 'todos';
+let editingId = null;
+let uploadedPhotos = []; // { url, storage_path }
+
+(async () => {
+  const user = await authGuard();
+  if (!user) return;
+
+  document.getElementById('layout').innerHTML = renderSidebar() + `
+  <div class="main">
+    ${renderTopbar('Imóveis', `<button class="btn btn-primary" id="btnNovo">＋ Novo imóvel</button>`)}
+    <div class="page-content">
+      <div class="filters" id="filterBar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Buscar imóvel..." style="padding-left:38px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);color:var(--text);padding:10px 14px 10px 38px;font-size:14px;outline:none;width:240px">
+        </div>
+        <button class="filter-btn active" data-filter="todos">Todos</button>
+        <button class="filter-btn" data-filter="venda">Venda</button>
+        <button class="filter-btn" data-filter="aluguel">Aluguel</button>
+        <button class="filter-btn" data-filter="terreno">Terreno</button>
+        <button class="filter-btn" data-filter="ativo">Ativos</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Foto</th><th>Imóvel</th><th>Tipo</th><th>Preço</th><th>Status</th><th>Destaque</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyImoveis">
+            <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3)"><div class="spinner"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>`;
+
+  initSidebar('imoveis');
+  populateUser(user);
+  initModalClose();
+
+  document.getElementById('btnNovo').addEventListener('click', () => openForm(null));
+  document.getElementById('btnSalvar').addEventListener('click', salvar);
+
+  // Filters
+  document.getElementById('filterBar').addEventListener('click', e => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filtroAtivo = btn.dataset.filter;
+    renderTable();
+  });
+
+  // Search
+  document.getElementById('searchInput').addEventListener('input', renderTable);
+
+  // Upload zone
+  const zone = document.getElementById('uploadZone');
+  const fileInput = document.getElementById('fFotos');
+  zone.addEventListener('click', () => fileInput.click());
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+  zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag'); handleFiles(e.dataTransfer.files); });
+  fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+  await loadImoveis();
+})();
+
+async function loadImoveis() {
+  try {
+    const res = await apiFetch('/imoveis');
+    imoveis = res.data || [];
+    renderTable();
+  } catch(e) {
+    toast('Erro ao carregar imóveis', 'error');
+  }
+}
+
+function renderTable() {
+  const q = document.getElementById('searchInput')?.value?.toLowerCase() || '';
+  let list = imoveis;
+  if (filtroAtivo !== 'todos') {
+    if (filtroAtivo === 'ativo') list = list.filter(i => i.status === 'ativo');
+    else list = list.filter(i => i.tipo === filtroAtivo);
+  }
+  if (q) list = list.filter(i => `${i.titulo} ${i.bairro} ${i.cidade}`.toLowerCase().includes(q));
+
+  const tbody = document.getElementById('tbodyImoveis');
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">🏠</div><div class="empty-state-title">Nenhum imóvel encontrado</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(im => `
+    <tr data-id="${im.id}">
+      <td>${im.capa_url ? `<img class="imovel-img" src="${im.capa_url}" alt="">` : `<div class="img-placeholder">${im.emoji||'🏠'}</div>`}</td>
+      <td>
+        <div style="font-weight:600">${im.titulo}</div>
+        <div style="font-size:12px;color:var(--text3)">${[im.bairro,im.cidade].filter(Boolean).join(', ')}</div>
+      </td>
+      <td><span class="badge badge-${im.tipo}">${im.tipo}</span></td>
+      <td style="font-weight:700;color:var(--g400)">${fmtPreco(im.preco)}${im.preco_periodo||''}</td>
+      <td><span class="badge badge-${im.status}">${im.status}</span></td>
+      <td style="text-align:center">${im.destaque ? '⭐' : '—'}</td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm btn-icon" onclick="openForm('${im.id}')" title="Editar">✏️</button>
+          <button class="btn btn-danger btn-sm btn-icon" onclick="excluir('${im.id}')" title="Excluir">🗑️</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function openForm(id) {
+  editingId = id;
+  uploadedPhotos = [];
+  document.getElementById('photosPreview').innerHTML = '';
+  document.getElementById('formImovel').reset();
+  document.getElementById('modalTitle').textContent = id ? 'Editar Imóvel' : 'Novo Imóvel';
+
+  if (id) {
+    const im = imoveis.find(i => i.id === id);
+    if (!im) return;
+    document.getElementById('fId').value = im.id;
+    document.getElementById('fTitulo').value = im.titulo || '';
+    document.getElementById('fTipo').value = im.tipo || '';
+    document.getElementById('fStatus').value = im.status || 'ativo';
+    document.getElementById('fPreco').value = im.preco || '';
+    document.getElementById('fPrecoPeriodo').value = im.preco_periodo || '';
+    document.getElementById('fBairro').value = im.bairro || '';
+    document.getElementById('fCidade').value = im.cidade || 'Quixadá';
+    document.getElementById('fQuartos').value = im.quartos || '';
+    document.getElementById('fBanheiros').value = im.banheiros || '';
+    document.getElementById('fVagas').value = im.vagas || '';
+    document.getElementById('fMetragem').value = im.metragem || '';
+    document.getElementById('fDescricao').value = im.descricao || '';
+    document.getElementById('fEmoji').value = im.emoji || '🏠';
+    document.getElementById('fDestaque').checked = !!im.destaque;
+  } else {
+    document.getElementById('fEmoji').value = '🏠';
+    document.getElementById('fCidade').value = 'Quixadá';
+    document.getElementById('fStatus').value = 'ativo';
+  }
+  openModal('modalImovel');
+}
+
+async function handleFiles(files) {
+  for (const file of files) {
+    const preview = document.createElement('div');
+    preview.className = 'photo-thumb';
+    preview.innerHTML = `<div class="spinner" style="margin:20px auto"></div>`;
+    document.getElementById('photosPreview').appendChild(preview);
+    try {
+      const res = await apiUpload(file, 'imoveis');
+      uploadedPhotos.push({ url: res.url, storage_path: res.path });
+      preview.innerHTML = `<img src="${res.url}" alt=""><button class="photo-remove" onclick="this.closest('.photo-thumb').remove();uploadedPhotos=uploadedPhotos.filter(p=>p.url!=='${res.url}')">✕</button>`;
+    } catch(e) {
+      preview.remove();
+      toast('Erro no upload: ' + e.message, 'error');
+    }
+  }
+}
+
+async function salvar() {
+  const btn = document.getElementById('btnSalvar');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+
+  const payload = {
+    titulo: document.getElementById('fTitulo').value,
+    tipo: document.getElementById('fTipo').value,
+    status: document.getElementById('fStatus').value,
+    preco: Number(document.getElementById('fPreco').value) || null,
+    preco_periodo: document.getElementById('fPrecoPeriodo').value,
+    bairro: document.getElementById('fBairro').value,
+    cidade: document.getElementById('fCidade').value,
+    quartos: Number(document.getElementById('fQuartos').value) || null,
+    banheiros: Number(document.getElementById('fBanheiros').value) || null,
+    vagas: Number(document.getElementById('fVagas').value) || null,
+    metragem: Number(document.getElementById('fMetragem').value) || null,
+    descricao: document.getElementById('fDescricao').value,
+    emoji: document.getElementById('fEmoji').value || '🏠',
+    destaque: document.getElementById('fDestaque').checked,
+    fotos: uploadedPhotos
+  };
+
+  try {
+    if (editingId) {
+      await apiFetch(`/imoveis/${editingId}`, { method: 'PUT', body: JSON.stringify(payload) });
+      toast('Imóvel atualizado com sucesso!');
+    } else {
+      await apiFetch('/imoveis', { method: 'POST', body: JSON.stringify(payload) });
+      toast('Imóvel criado com sucesso!');
+    }
+    closeModal('modalImovel');
+    await loadImoveis();
+  } catch(e) {
+    toast(e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Salvar imóvel';
+  }
+}
+
+async function excluir(id) {
+  if (!confirmDialog('Tem certeza que deseja excluir este imóvel?')) return;
+  try {
+    await apiFetch(`/imoveis/${id}`, { method: 'DELETE' });
+    toast('Imóvel excluído.');
+    await loadImoveis();
+  } catch(e) { toast(e.message, 'error'); }
+}
+</script>
+</body>
+</html>
