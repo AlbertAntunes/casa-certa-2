@@ -131,42 +131,51 @@ let novaFotoUrl = null;
 
   document.getElementById('btnNovoCorretor').addEventListener('click', () => openForm(null));
   document.getElementById('btnSalvarEq').addEventListener('click', salvar);
+document.getElementById('eqFotoInput').addEventListener('change', async (e) => {
 
-  // Foto preview
-                <label class="btn btn-ghost btn-sm" style="cursor:pointer">📷 Escolher foto<input type="file" id="eqFotoInput" accept="image/*" style="display:none"></label>
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const prev = document.getElementById('eqFotoPreview');
-      prev.src = ev.target.result; prev.style.display = 'block';
-    };
-    reader.readAsDataURL(file);
-    try {
-      let res;
-      try {
-        res = await apiUpload(file, 'equipe');
-      } catch {
-        res = await apiUpload(file, 'imoveis');
-      }
-      novaFotoUrl = res.url;
-      toast('Foto enviada!');
-    } catch(e) {
-      toast('Erro no upload da foto', 'error');
-    }
-  });
+  const file = e.target.files[0];
 
-  await carregar();
-})();
+  if (!file) return;
 
-async function carregar() {
+  // Preview
+  const reader = new FileReader();
+
+  reader.onload = ev => {
+
+    const prev = document.getElementById('eqFotoPreview');
+
+    prev.src = ev.target.result;
+
+    prev.style.display = 'block';
+  };
+
+  reader.readAsDataURL(file);
+
+  // Upload
   try {
-    const res = await apiFetch('/equipe');
-    equipe = res.data || [];
-    renderGrid();
-  } catch { toast('Erro ao carregar equipe', 'error'); }
-}
 
+    let res;
+
+    try {
+
+      res = await apiUpload(file, 'equipe');
+
+    } catch {
+
+      res = await apiUpload(file, 'imoveis');
+    }
+
+    novaFotoUrl = res.url;
+
+    toast('Foto enviada!');
+
+  } catch (e) {
+
+    toast('Erro no upload da foto', 'error');
+  }
+
+});
+})();
 function renderGrid() {
   const grid = document.getElementById('teamGrid');
   if (!equipe.length) {
