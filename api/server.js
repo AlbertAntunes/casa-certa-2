@@ -22,6 +22,9 @@ app.use('/api/upload',       require('./routes/upload'));
 const conteudo = require('./routes/conteudo');
 app.use('/api', conteudo);
 
+/* ── HEALTH CHECK ── */
+app.get('/api/health', (_req, res) => res.json({ ok: true, ts: Date.now() }));
+
 /* ── STATIC FRONTEND (dev only) ── */
 if (process.env.NODE_ENV !== 'production') {
   app.use(express.static(path.join(__dirname, '../frontend')));
@@ -30,9 +33,6 @@ if (process.env.NODE_ENV !== 'production') {
   app.get('*', (_req, res) =>
     res.sendFile(path.join(__dirname, '../frontend/index.html')));
 }
-
-/* ── HEALTH CHECK ── */
-app.get('/api/health', (_req, res) => res.json({ ok: true, ts: Date.now() }));
 
 /* ── ERROR HANDLER ── */
 app.use((err, _req, res, _next) => {

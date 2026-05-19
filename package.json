@@ -1,7 +1,7 @@
 {
   "name": "casa-certa-api",
   "version": "1.0.0",
-  "description": "Backend API - Casa Certa Imóveis",
+  "description": "Backend API - Casa Certa ImÃ³veis",
   "main": "api/server.js",
   "scripts": {
     "start": "node api/server.js",
@@ -21,6 +21,6 @@
     "nodemon": "^3.0.2"
   },
   "engines": {
-  "node": "24.x"
-}
+    "node": ">=20 <25"
+  }
 }

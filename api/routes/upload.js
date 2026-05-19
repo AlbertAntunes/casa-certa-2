@@ -17,18 +17,18 @@ router.post('/', auth, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'Nenhum arquivo enviado' });
 
-    const bucket = req.body.bucket || 'imoveis';
-    const ext    = req.file.originalname.split('.').pop();
-    const path   = `${bucket}/${uuid()}.${ext}`;
+    const bucket      = req.body.bucket || 'imoveis';
+    const ext         = req.file.originalname.split('.').pop().toLowerCase();
+    const storagePath = `uploads/${uuid()}.${ext}`;   // path inside the bucket, no bucket prefix
 
-    const { error } = await sb.storage.from(bucket).upload(path, req.file.buffer, {
+    const { error } = await sb.storage.from(bucket).upload(storagePath, req.file.buffer, {
       contentType: req.file.mimetype,
       upsert: false
     });
     if (error) throw error;
 
-    const { data: { publicUrl } } = sb.storage.from(bucket).getPublicUrl(path);
-    res.json({ url: publicUrl, path, originalName: req.file.originalname });
+    const { data: { publicUrl } } = sb.storage.from(bucket).getPublicUrl(storagePath);
+    res.json({ url: publicUrl, path: storagePath, originalName: req.file.originalname });
   } catch (e) {
     res.status(500).json({ message: e.message });
   }

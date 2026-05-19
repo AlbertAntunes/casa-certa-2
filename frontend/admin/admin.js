@@ -3,8 +3,12 @@
    Funções compartilhadas de todas as páginas admin.
    ════════════════════════════════════════ */
 
-/* ── AUTH ── */
+/* ────────────────────────────────────────
+   AUTH
+──────────────────────────────────────── */
+
 async function authGuard() {
+
   const token = localStorage.getItem('cc_token');
 
   if (!token) {
@@ -13,45 +17,64 @@ async function authGuard() {
   }
 
   try {
+
     const res = await fetch('/api/auth/me', {
       headers: {
         Authorization: `Bearer ${token}`
       }
     });
 
-    if (!res.ok) throw new Error();
+    if (!res.ok) {
+      throw new Error('Não autenticado');
+    }
 
     const { data } = await res.json();
 
     setTimeout(() => {
-      document.querySelectorAll('.js-user-name').forEach(el => {
-        el.textContent = data.nome || data.email;
-      });
+
+      document.querySelectorAll('.js-user-name')
+        .forEach(el => {
+          el.textContent =
+            data.nome ||
+            data.email ||
+            'Admin';
+        });
+
     }, 0);
 
     return data;
 
-  } catch (e) {
-    console.error(e);
+  } catch (err) {
+
+    console.error(err);
 
     localStorage.removeItem('cc_token');
+
     window.location.href = '/admin/index.html';
 
     return null;
   }
 }
 
-// Alias
 const requireAuth = authGuard;
 
-/* ── LOGOUT ── */
+/* ────────────────────────────────────────
+   LOGOUT
+──────────────────────────────────────── */
+
 function logout() {
+
   localStorage.removeItem('cc_token');
+
   window.location.href = '/admin/index.html';
 }
 
-/* ── API ── */
+/* ────────────────────────────────────────
+   API
+──────────────────────────────────────── */
+
 async function apiFetch(path, opts = {}) {
+
   const token = localStorage.getItem('cc_token');
 
   const headers = {
@@ -60,7 +83,7 @@ async function apiFetch(path, opts = {}) {
   };
 
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers.Authorization = `Bearer ${token}`;
   }
 
   const res = await fetch('/api' + path, {
@@ -69,7 +92,10 @@ async function apiFetch(path, opts = {}) {
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+
+    const err =
+      await res.json()
+        .catch(() => ({}));
 
     throw new Error(
       err.message ||
@@ -80,11 +106,14 @@ async function apiFetch(path, opts = {}) {
   return res.json();
 }
 
-// Alias
 const api = apiFetch;
 
-/* ── UPLOAD ── */
+/* ────────────────────────────────────────
+   UPLOAD
+──────────────────────────────────────── */
+
 async function apiUpload(file, bucket = 'imoveis') {
+
   const token = localStorage.getItem('cc_token');
 
   const fd = new FormData();
@@ -107,16 +136,13 @@ async function apiUpload(file, bucket = 'imoveis') {
   return res.json();
 }
 
-/* ── TOAST ── */
+/* ────────────────────────────────────────
+   TOAST
+──────────────────────────────────────── */
+
 (function initToastContainer() {
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', createToastContainer);
-  } else {
-    createToastContainer();
-  }
-
-  function createToastContainer() {
+  function createContainer() {
 
     if (document.getElementById('ccToasts')) return;
 
@@ -136,6 +162,12 @@ async function apiUpload(file, bucket = 'imoveis') {
     `;
 
     document.body.appendChild(el);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', createContainer);
+  } else {
+    createContainer();
   }
 
 })();
@@ -184,26 +216,26 @@ function toast(msg, type = 'success', duration = 3500) {
     <span>${msg}</span>
   `;
 
-  if (!document.getElementById('ccToastKeyframes')) {
+  if (!document.getElementById('ccToastStyle')) {
 
-    const s = document.createElement('style');
+    const style = document.createElement('style');
 
-    s.id = 'ccToastKeyframes';
+    style.id = 'ccToastStyle';
 
-    s.textContent = `
+    style.textContent = `
       @keyframes ccToastIn{
         from{
           opacity:0;
-          transform:translateX(20px)
+          transform:translateX(20px);
         }
         to{
           opacity:1;
-          transform:translateX(0)
+          transform:translateX(0);
         }
       }
     `;
 
-    document.head.appendChild(s);
+    document.head.appendChild(style);
   }
 
   const container = document.getElementById('ccToasts');
@@ -225,7 +257,10 @@ function toast(msg, type = 'success', duration = 3500) {
   }, duration);
 }
 
-/* ── CONFIRM ── */
+/* ────────────────────────────────────────
+   CONFIRM
+──────────────────────────────────────── */
+
 function confirmDialog(msg) {
 
   return new Promise(resolve => {
@@ -253,6 +288,7 @@ function confirmDialog(msg) {
         max-width:400px;
         font-family:'DM Sans',sans-serif
       ">
+
         <div style="
           padding:22px 26px;
           border-bottom:1px solid var(--border)
@@ -284,36 +320,37 @@ function confirmDialog(msg) {
           gap:10px;
           justify-content:flex-end
         ">
-          <button id="ccConfirmNo"
-            style="
-              padding:9px 18px;
-              border-radius:var(--r);
-              background:transparent;
-              border:1px solid var(--border2);
-              color:var(--text2);
-              cursor:pointer;
-              font-family:inherit;
-              font-size:14px;
-              font-weight:600
-            ">
+
+          <button id="ccConfirmNo" style="
+            padding:9px 18px;
+            border-radius:var(--r);
+            background:transparent;
+            border:1px solid var(--border2);
+            color:var(--text2);
+            cursor:pointer;
+            font-family:inherit;
+            font-size:14px;
+            font-weight:600
+          ">
             Cancelar
           </button>
 
-          <button id="ccConfirmYes"
-            style="
-              padding:9px 18px;
-              border-radius:var(--r);
-              background:rgba(239,68,68,.15);
-              border:1px solid rgba(239,68,68,.3);
-              color:#f87171;
-              cursor:pointer;
-              font-family:inherit;
-              font-size:14px;
-              font-weight:600
-            ">
+          <button id="ccConfirmYes" style="
+            padding:9px 18px;
+            border-radius:var(--r);
+            background:rgba(239,68,68,.15);
+            border:1px solid rgba(239,68,68,.3);
+            color:#f87171;
+            cursor:pointer;
+            font-family:inherit;
+            font-size:14px;
+            font-weight:600
+          ">
             Confirmar
           </button>
+
         </div>
+
       </div>
     `;
 
@@ -332,53 +369,62 @@ function confirmDialog(msg) {
   });
 }
 
-// Alias
 const adminConfirm = confirmDialog;
 
-/* ── FORMAT ── */
+/* ────────────────────────────────────────
+   FORMATADORES
+──────────────────────────────────────── */
+
 function fmtPreco(val) {
 
   if (!val && val !== 0) {
     return '—';
   }
 
-  return 'R$ ' + Number(val).toLocaleString(
-    'pt-BR',
-    {
+  return 'R$ ' + Number(val)
+    .toLocaleString('pt-BR', {
       minimumFractionDigits: 0
-    }
-  );
+    });
 }
 
 function fmtDate(str) {
 
   if (!str) return '—';
 
-  return new Date(str).toLocaleDateString(
-    'pt-BR',
-    {
+  return new Date(str)
+    .toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
-    }
-  );
+    });
 }
 
 const formatPrice = fmtPreco;
 const formatDate = fmtDate;
 
-/* ── SIDEBAR ── */
+/* ────────────────────────────────────────
+   SIDEBAR
+──────────────────────────────────────── */
+
 function renderSidebar(activePage) {
 
   const page =
     activePage ||
-    window.location.pathname.split('/').pop();
+    window.location.pathname
+      .split('/')
+      .pop();
 
   const link = (href, icon, label) => {
 
     const active =
       href === page
-        ? 'style="background:rgba(34,197,94,.12);color:var(--g400);font-weight:600"'
+        ? `
+          style="
+            background:rgba(34,197,94,.12);
+            color:var(--g400);
+            font-weight:600
+          "
+        `
         : '';
 
     return `
@@ -393,6 +439,7 @@ function renderSidebar(activePage) {
   <div class="sidebar" id="sidebar">
 
     <div class="sidebar-logo">
+
       <div class="sidebar-logo-text">
         Casa<span style="color:var(--g400)">Certa</span>
       </div>
@@ -400,33 +447,46 @@ function renderSidebar(activePage) {
       <div class="sidebar-logo-sub">
         Painel Administrativo
       </div>
+
     </div>
 
     <nav class="sidebar-nav">
 
       <div class="nav-group">
-        <div class="nav-group-label">Geral</div>
+
+        <div class="nav-group-label">
+          Geral
+        </div>
 
         ${link('dashboard.html','📊','Dashboard')}
         ${link('imoveis.html','🏠','Imóveis')}
         ${link('midia.html','🖼️','Mídia da Home')}
+
       </div>
 
       <div class="nav-group">
-        <div class="nav-group-label">Conteúdo</div>
+
+        <div class="nav-group-label">
+          Conteúdo
+        </div>
 
         ${link('equipe.html','👥','Equipe')}
         ${link('depoimentos.html','⭐','Depoimentos')}
         ${link('faq.html','❓','FAQ')}
         ${link('conteudo.html','✏️','Textos do Site')}
+
       </div>
 
       <div class="nav-group">
-        <div class="nav-group-label">Sistema</div>
+
+        <div class="nav-group-label">
+          Sistema
+        </div>
 
         ${link('contatos.html','📩','Leads')}
         ${link('seo.html','🔍','SEO')}
         ${link('configuracoes.html','⚙️','Configurações')}
+
       </div>
 
     </nav>
@@ -440,6 +500,7 @@ function renderSidebar(activePage) {
         </div>
 
         <div class="sidebar-user-info">
+
           <div class="sidebar-user-name js-user-name">
             Admin
           </div>
@@ -447,6 +508,7 @@ function renderSidebar(activePage) {
           <div class="sidebar-user-role">
             Administrador
           </div>
+
         </div>
 
         <button
@@ -468,39 +530,57 @@ function renderSidebar(activePage) {
 
     </div>
 
-  </div>`;
+  </div>
+  `;
 }
 
-/* ── INIT SIDEBAR ── */
+/* ────────────────────────────────────────
+   INIT SIDEBAR
+──────────────────────────────────────── */
+
 function initSidebar(activePage) {
 
   const current =
     activePage ||
-    window.location.pathname.split('/').pop();
+    window.location.pathname
+      .split('/')
+      .pop();
 
-  document.querySelectorAll('.nav-link').forEach(link => {
+  document.querySelectorAll('.nav-link')
+    .forEach(link => {
 
-    const href = link.getAttribute('href');
+      const href =
+        link.getAttribute('href');
 
-    if (
-      href === current ||
-      href === current + '.html'
-    ) {
-      link.style.background = 'rgba(34,197,94,.12)';
-      link.style.color = 'var(--g400)';
-      link.style.fontWeight = '600';
-    }
-  });
+      if (
+        href === current ||
+        href === current + '.html'
+      ) {
+
+        link.style.background =
+          'rgba(34,197,94,.12)';
+
+        link.style.color =
+          'var(--g400)';
+
+        link.style.fontWeight =
+          '600';
+      }
+    });
 }
 
-/* ── TOPBAR ── */
+/* ────────────────────────────────────────
+   TOPBAR
+──────────────────────────────────────── */
+
 function renderTopbar(title, actionsHtml = '') {
 
   return `
   <div class="topbar">
 
     <button
-      onclick="document.getElementById('sidebar').classList.toggle('open')"
+      id="mobileMenuBtn"
+      class="mobile-menu-btn"
       style="
         display:none;
         background:none;
@@ -510,8 +590,6 @@ function renderTopbar(title, actionsHtml = '') {
         color:var(--text);
         padding:4px
       "
-      class="mobile-menu-btn"
-      id="mobileMenuBtn"
     >
       ☰
     </button>
@@ -524,19 +602,24 @@ function renderTopbar(title, actionsHtml = '') {
       ${actionsHtml}
     </div>
 
-  </div>`;
+  </div>
+  `;
 }
 
-/* ── USER UI ── */
+/* ────────────────────────────────────────
+   USER UI
+──────────────────────────────────────── */
+
 function populateUser(user) {
 
-  document.querySelectorAll('.js-user-name').forEach(el => {
+  document.querySelectorAll('.js-user-name')
+    .forEach(el => {
 
-    el.textContent =
-      user?.nome ||
-      user?.email ||
-      'Admin';
-  });
+      el.textContent =
+        user?.nome ||
+        user?.email ||
+        'Admin';
+    });
 
   const avatar =
     document.getElementById('sidebarAvatar');
@@ -552,7 +635,10 @@ function populateUser(user) {
   }
 }
 
-/* ── MODAIS ── */
+/* ────────────────────────────────────────
+   MODAIS
+──────────────────────────────────────── */
+
 function openModal(id) {
 
   const modal =
@@ -561,6 +647,7 @@ function openModal(id) {
   if (!modal) return;
 
   modal.classList.add('open');
+
   modal.style.display = 'flex';
 
   document.body.style.overflow = 'hidden';
@@ -574,6 +661,7 @@ function closeModal(id) {
   if (!modal) return;
 
   modal.classList.remove('open');
+
   modal.style.display = 'none';
 
   document.body.style.overflow = '';
@@ -581,31 +669,36 @@ function closeModal(id) {
 
 function initModalClose() {
 
-  document.querySelectorAll('.modal-close').forEach(btn => {
+  document.querySelectorAll('.modal-close')
+    .forEach(btn => {
 
-    btn.addEventListener('click', () => {
+      btn.addEventListener('click', () => {
 
-      const modal =
-        btn.closest('.modal-overlay');
+        const modal =
+          btn.closest('.modal-overlay');
 
-      if (modal) {
-        closeModal(modal.id);
-      }
+        if (modal) {
+          closeModal(modal.id);
+        }
+      });
     });
-  });
 
-  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  document.querySelectorAll('.modal-overlay')
+    .forEach(overlay => {
 
-    overlay.addEventListener('click', e => {
+      overlay.addEventListener('click', e => {
 
-      if (e.target === overlay) {
-        closeModal(overlay.id);
-      }
+        if (e.target === overlay) {
+          closeModal(overlay.id);
+        }
+      });
     });
-  });
 }
 
-/* ── MOBILE SIDEBAR ── */
+/* ────────────────────────────────────────
+   MOBILE SIDEBAR
+──────────────────────────────────────── */
+
 document.addEventListener('DOMContentLoaded', () => {
 
   const style = document.createElement('style');
@@ -614,20 +707,36 @@ document.addEventListener('DOMContentLoaded', () => {
     @media(max-width:768px){
 
       .mobile-menu-btn{
-        display:block !important
+        display:block !important;
       }
 
       .sidebar{
-        transform:translateX(-100%)
+        transform:translateX(-100%);
       }
 
       .sidebar.open{
-        transform:none
+        transform:none;
       }
     }
   `;
 
   document.head.appendChild(style);
+
+  const btn =
+    document.getElementById('mobileMenuBtn');
+
+  if (btn) {
+
+    btn.addEventListener('click', () => {
+
+      const sidebar =
+        document.getElementById('sidebar');
+
+      if (!sidebar) return;
+
+      sidebar.classList.toggle('open');
+    });
+  }
 
   document.addEventListener('click', e => {
 
@@ -637,9 +746,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const btn =
       document.getElementById('mobileMenuBtn');
 
+    if (!sidebar || !btn) return;
+
     if (
-      sidebar &&
-      btn &&
       !sidebar.contains(e.target) &&
       !btn.contains(e.target)
     ) {
