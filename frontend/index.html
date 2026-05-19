@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23065f46'/%3E%3Cpath d='M10 31 32 13l22 18v19a2 2 0 0 1-2 2H12a2 2 0 0 1-2-2V31z' fill='%2322C55E'/%3E%3Cpath d='M24 52V36h16v16' fill='%23ffffff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <title>Casa Certa Imóveis · Quixadá CE</title>
 <meta name="description" content="Casa Certa Imóveis em Quixadá CE. Diogo Sousa e Salomão Teodoseo – corretores especialistas em casas, terrenos e apartamentos com entrada facilitada.">
 
@@ -956,7 +957,7 @@ footer{
     <div class="hero-content">
       <div class="hero-badge"><span class="badge-dot"></span> 2 Corretores · CRECI 28948 & 15784</div>
       <h1 class="hero-title">CASA<br><span class="line-green">CERTA</span></h1>
-      <div class="hero-loc">📍 QUIXADÁ – CE · Imóveis</div>
+      <div class="hero-loc"> <i class="fa-solid fa-location-dot"></i> QUIXADÁ – CE · Imóveis</div>
       <p class="hero-sub">
         <span id="typed-text"></span><span class="typed-cursor"></span>
       </p>
@@ -1034,16 +1035,16 @@ footer{
     <div style="margin-top:36px" class="reveal">
       <div class="filter-tabs">
         <button class="filter-tab active" data-filter="all">Todos</button>
-        <button class="filter-tab" data-filter="venda">🏠 Venda</button>
-        <button class="filter-tab" data-filter="aluguel">🔑 Aluguel</button>
-        <button class="filter-tab" data-filter="terreno">🌿 Terreno</button>
+        <button class="filter-tab" data-filter="venda"><i class="fa-solid fa-house"></i> Venda</button>
+        <button class="filter-tab" data-filter="aluguel"><i class="fa-solid fa-key"></i> Aluguel</button>
+        <button class="filter-tab" data-filter="terreno"><i class="fa-solid fa-seedling"></i> Terreno</button>
       </div>
     </div>
     <div class="props-grid" id="propsGrid">
       <!-- Cards -->
       <div class="prop-card reveal" data-type="venda">
         <div class="prop-photo" style="background:linear-gradient(135deg,#065f46,#022c18)">
-          <div class="emoji">🏠</div>
+          <div class="emoji"><i class="fa-solid fa-house"></i></div>
           <div class="p-overlay"></div>
           <span class="prop-badge venda">Venda</span>
           <button class="prop-fav" onclick="toggleFav(this)">♡</button>
@@ -1051,7 +1052,7 @@ footer{
         <div class="prop-body">
           <div class="prop-title">Casa Térrea com Quintal Amplo</div>
           <div class="prop-meta">
-            <span class="prop-tag">📍 Bairro Novo</span>
+            <span class="prop-tag"><i class="fa-solid fa-location-dot"></i> Bairro Novo</span>
             <span class="prop-tag">🛏 3 qtos</span>
             <span class="prop-tag">📐 180m²</span>
             <span class="prop-tag">🚗 1 vaga</span>
@@ -1073,7 +1074,7 @@ footer{
         <div class="prop-body">
           <div class="prop-title">Casa Moderna Área Gourmet</div>
           <div class="prop-meta">
-            <span class="prop-tag">📍 Centro</span>
+            <span class="prop-tag"><i class="fa-solid fa-location-dot"></i> Centro</span>
             <span class="prop-tag">🛏 4 qtos</span>
             <span class="prop-tag">📐 240m²</span>
             <span class="prop-tag">🚗 2 vagas</span>
@@ -1095,7 +1096,7 @@ footer{
         <div class="prop-body">
           <div class="prop-title">Terreno Plano – Bairro Novo</div>
           <div class="prop-meta">
-            <span class="prop-tag">📍 Bairro Novo</span>
+            <span class="prop-tag"><i class="fa-solid fa-location-dot"></i> Bairro Novo</span>
             <span class="prop-tag">📐 250m²</span>
             <span class="prop-tag">✅ Escriturado</span>
           </div>
@@ -1116,14 +1117,14 @@ footer{
         <div class="prop-body">
           <div class="prop-title">Apto 2 Quartos – São José</div>
           <div class="prop-meta">
-            <span class="prop-tag">📍 São José</span>
-            <span class="prop-tag">🛏 2 qtos</span>
-            <span class="prop-tag">📐 65m²</span>
+            <span class="prop-tag"><i class="fa-solid fa-location-dot"></i> São José</span>
+            <span class="prop-tag"><i class="fa-solid fa-bed"></i> 2 qtos</span>
+            <span class="prop-tag"><i class="fa-solid fa-ruler-combined"></i> 65m²</span>
           </div>
           <div class="prop-price">R$ 1.200<span style="font-size:14px;font-weight:500">/mês</span></div>
           <div class="prop-actions">
             <button class="btn-sm btn-sm-green" onclick="openWpp()">Ver Mais →</button>
-            <button class="btn-sm btn-sm-wpp" onclick="openWpp()">💬 Wpp</button>
+            <button class="btn-sm btn-sm-wpp" onclick="openWpp()"><i class="fa-brands fa-whatsapp"></i> Wpp</button>
           </div>
         </div>
       </div>
@@ -1137,14 +1138,14 @@ footer{
         <div class="prop-body">
           <div class="prop-title">Casa Geminada – Boa Vista</div>
           <div class="prop-meta">
-            <span class="prop-tag">📍 Boa Vista</span>
-            <span class="prop-tag">🛏 2 qtos</span>
-            <span class="prop-tag">📐 120m²</span>
+            <span class="prop-tag"><i class="fa-solid fa-location-dot"></i> Boa Vista</span>
+            <span class="prop-tag"><i class="fa-solid fa-bed"></i> 2 qtos</span>
+            <span class="prop-tag"><i class="fa-solid fa-ruler-combined"></i> 120m²</span>
           </div>
           <div class="prop-price">R$ 165.000</div>
           <div class="prop-actions">
             <button class="btn-sm btn-sm-green" onclick="openWpp()">Ver Mais →</button>
-            <button class="btn-sm btn-sm-wpp" onclick="openWpp()">💬 Wpp</button>
+            <button class="btn-sm btn-sm-wpp" onclick="openWpp()"><i class="fa-solid fa-car"></i> Wpp</button>
           </div>
         </div>
       </div>
@@ -1158,8 +1159,8 @@ footer{
         <div class="prop-body">
           <div class="prop-title">Terreno Comercial – Centro</div>
           <div class="prop-meta">
-            <span class="prop-tag">📍 Centro</span>
-            <span class="prop-tag">📐 500m²</span>
+            <span class="prop-tag"><i class="fa-solid fa-location-dot"></i> Centro</span>
+            <span class="prop-tag"><i class="fa-solid fa-ruler-combined"></i> 500m²</span>
             <span class="prop-tag">🏪 Comercial</span>
           </div>
           <div class="prop-price">R$ 150.000</div>
@@ -1467,7 +1468,7 @@ footer{
       <div>
         <div class="footer-heading">Contato</div>
         <ul class="footer-links">
-          <li><a href="#">📍 Quixadá – CE</a></li>
+          <li><a href="#"><i class="fa-solid fa-location-dot"></i> Quixadá – CE</a></li>
           <li><a href="#" onclick="openWpp()">💬 WhatsApp</a></li>
           <li><a href="#">📧 Email</a></li>
           <li><a href="#">🕐 Seg–Sáb 8h–18h</a></li>
