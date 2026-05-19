@@ -303,7 +303,7 @@ async function salvar() {
     descricao: document.getElementById('fDescricao').value,
     emoji: document.getElementById('fEmoji').value || '🏠',
     destaque: document.getElementById('fDestaque').checked,
-    fotos: uploadedPhotos
+    fotos: uploadedPhotos.map(p => p.url)
   };
 
   try {
@@ -324,7 +324,7 @@ async function salvar() {
 }
 
 async function excluir(id) {
-  if (!confirmDialog('Tem certeza que deseja excluir este imóvel?')) return;
+  if (!await confirmDialog('Tem certeza que deseja excluir este imóvel?')) return;
   try {
     await apiFetch(`/imoveis/${id}`, { method: 'DELETE' });
     toast('Imóvel excluído.');

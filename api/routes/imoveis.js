@@ -36,13 +36,16 @@ router.get('/:id', async (req, res) => {
 router.post('/', auth, async (req, res) => {
   try {
     const { fotos, ...payload } = req.body;
+    const fotosUrls = Array.isArray(fotos)
+      ? fotos.map(f => (typeof f === 'string' ? f : f?.url)).filter(Boolean)
+      : [];
     if (!payload.slug) payload.slug = slugify(payload.titulo);
     const { data: im, error } = await sb.from('imoveis').insert(payload).select().single();
     if (error) throw error;
-    if (fotos?.length) {
-      const imgs = fotos.map((url, i) => ({ imovel_id: im.id, url, ordem: i, is_capa: i === 0 }));
+    if (fotosUrls.length) {
+      const imgs = fotosUrls.map((url, i) => ({ imovel_id: im.id, url, ordem: i, is_capa: i === 0 }));
       await sb.from('imagens_imoveis').insert(imgs);
-      await sb.from('imoveis').update({ capa_url: fotos[0] }).eq('id', im.id);
+      await sb.from('imoveis').update({ capa_url: fotosUrls[0] }).eq('id', im.id);
     }
     res.status(201).json({ data: im });
   } catch (e) { res.status(500).json({ message: e.message }); }
@@ -52,14 +55,17 @@ router.post('/', auth, async (req, res) => {
 router.put('/:id', auth, async (req, res) => {
   try {
     const { fotos, ...payload } = req.body;
+    const fotosUrls = Array.isArray(fotos)
+      ? fotos.map(f => (typeof f === 'string' ? f : f?.url)).filter(Boolean)
+      : [];
     payload.updated_at = new Date().toISOString();
     const { data, error } = await sb.from('imoveis').update(payload).eq('id', req.params.id).select().single();
     if (error) throw error;
-    if (fotos?.length) {
+    if (fotosUrls.length) {
       await sb.from('imagens_imoveis').delete().eq('imovel_id', req.params.id);
-      const imgs = fotos.map((url, i) => ({ imovel_id: req.params.id, url, ordem: i, is_capa: i === 0 }));
+      const imgs = fotosUrls.map((url, i) => ({ imovel_id: req.params.id, url, ordem: i, is_capa: i === 0 }));
       await sb.from('imagens_imoveis').insert(imgs);
-      await sb.from('imoveis').update({ capa_url: fotos[0] }).eq('id', req.params.id);
+      await sb.from('imoveis').update({ capa_url: fotosUrls[0] }).eq('id', req.params.id);
     }
     res.json({ data });
   } catch (e) { res.status(500).json({ message: e.message }); }

@@ -243,7 +243,7 @@ async function salvarOrdem() {
 }
 
 async function removerMidia(id) {
-  if (!confirmDialog('Remover esta mídia do carrossel?')) return;
+  if (!await confirmDialog('Remover esta mídia do carrossel?')) return;
   try {
     await apiFetch(`/midias-home/${id}`, { method: 'DELETE' });
     toast('Mídia removida.');
@@ -255,11 +255,11 @@ async function salvarConfig() {
   const btn = document.getElementById('btnSalvarConfig');
   btn.disabled = true; btn.textContent = 'Salvando...';
   try {
-    await apiFetch('/configuracoes/carrossel', { method: 'PUT', body: JSON.stringify({ valor: JSON.stringify({
+    await apiFetch('/configuracoes/carrossel', { method: 'PUT', body: JSON.stringify({
       autoplay: document.getElementById('cfgAutoplay').checked,
       intervalo_ms: Number(document.getElementById('cfgIntervalo').value),
       velocidade_ms: Number(document.getElementById('cfgVelocidade').value)
-    })})});
+    })});
     toast('Configurações do carrossel salvas!');
   } catch(e) { toast(e.message, 'error'); }
   finally { btn.disabled = false; btn.textContent = '💾 Salvar configurações'; }

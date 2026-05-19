@@ -1,12 +1,12 @@
 /**
- * Casa Certa — Site Initializer
- * Injeta dados dinâmicos da API no HTML existente sem alterar o visual.
- * Carregado após o DOM estar pronto.
+ * Casa Certa ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Site Initializer
+ * Injeta dados dinÃƒÆ’Ã‚Â¢micos da API no HTML existente sem alterar o visual.
+ * Carregado apÃƒÆ’Ã‚Â³s o DOM estar pronto.
  */
 
 const CC = {
 
-  /* ─── INIT ─── */
+  /* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ INIT ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
   async init() {
     try {
       const [cfgRes, imoveisRes, equipeRes, midiaRes, marqRes, faqRes] = await Promise.allSettled([
@@ -23,12 +23,12 @@ const CC = {
       const equipe  = equipeRes.status === 'fulfilled'   ? (equipeRes.value.data || []) : [];
       const faq     = faqRes.status === 'fulfilled'      ? (faqRes.value.data || []) : [];
 
-      CC.applyConfig(cfg);
-      CC.applyImoveis(imoveis);
-      CC.applyEquipe(equipe);
-      CC.applyFaq(faq);
-      CC.applyMarquee(cfg.marquee_itens);
-      CC.applySEO();
+      try { CC.applyConfig(cfg); } catch (e) { console.warn('[CasaCerta] applyConfig falhou:', e); }
+      try { CC.applyImoveis(imoveis); } catch (e) { console.warn('[CasaCerta] applyImoveis falhou:', e); }
+      try { CC.applyEquipe(equipe); } catch (e) { console.warn('[CasaCerta] applyEquipe falhou:', e); }
+      try { CC.applyFaq(faq); } catch (e) { console.warn('[CasaCerta] applyFaq falhou:', e); }
+      try { CC.applyMarquee(cfg.marquee_itens); } catch (e) { console.warn('[CasaCerta] applyMarquee falhou:', e); }
+      try { CC.applySEO(); } catch (e) { console.warn('[CasaCerta] applySEO falhou:', e); }
     } catch (e) {
       console.warn('[CasaCerta] Falha ao carregar dados:', e);
     }
@@ -43,7 +43,7 @@ const CC = {
     return map;
   },
 
-  /* ─── CONFIG / TEXTOS ─── */
+  /* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ CONFIG / TEXTOS ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
   applyConfig(cfg) {
     const set = (sel, val, attr = 'textContent') => {
       if (!val) return;
@@ -111,7 +111,7 @@ const CC = {
     });
   },
 
-  /* ─── IMÓVEIS ─── */
+  /* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ IMÃƒÆ’Ã¢â‚¬Å“VEIS ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
   applyImoveis(list) {
     const grid = document.getElementById('propsGrid');
     if (!grid || !list.length) return;
@@ -126,40 +126,42 @@ const CC = {
     ];
 
     grid.innerHTML = list.map((im, i) => {
+      const tipo = ['venda', 'aluguel', 'terreno'].includes(im?.tipo) ? im.tipo : 'venda';
       const gradient = im.cor_card || gradients[i % gradients.length];
-      const badgeClass = im.tipo === 'venda' ? 'venda' : im.tipo === 'aluguel' ? 'aluguel' : 'terreno';
+      const badgeClass = tipo === 'venda' ? 'venda' : tipo === 'aluguel' ? 'aluguel' : 'terreno';
       const preco = im.preco
         ? `R$ ${Number(im.preco).toLocaleString('pt-BR')}${im.preco_periodo || ''}`
         : 'Consulte';
 
       const meta = [
-        im.bairro    ? `<span class="prop-tag">📍 ${im.bairro}</span>` : '',
-        im.quartos   ? `<span class="prop-tag">🛏 ${im.quartos} qtos</span>` : '',
-        im.metragem  ? `<span class="prop-tag">📐 ${im.metragem}m²</span>` : '',
-        im.vagas     ? `<span class="prop-tag">🚗 ${im.vagas} vaga${im.vagas>1?'s':''}</span>` : '',
+        im.bairro    ? `<span class="prop-tag">ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â ${im.bairro}</span>` : '',
+        im.quartos   ? `<span class="prop-tag">ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂºÃ‚Â ${im.quartos} qtos</span>` : '',
+        im.metragem  ? `<span class="prop-tag">ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â ${im.metragem}mÃƒâ€šÃ‚Â²</span>` : '',
+        im.vagas     ? `<span class="prop-tag">ÃƒÂ°Ã…Â¸Ã…Â¡Ã¢â‚¬â€ ${im.vagas} vaga${im.vagas>1?'s':''}</span>` : '',
       ].join('');
 
-      const imgHtml = im.capa_url
+      const capaUrl = typeof im.capa_url === 'string' ? im.capa_url : '';
+      const imgHtml = capaUrl
         ? `<img src="${im.capa_url}" alt="${im.titulo}" style="width:100%;height:100%;object-fit:cover" loading="lazy">`
-        : `<div class="emoji">${im.emoji || '🏠'}</div>`;
+        : `<div class="emoji">${im.emoji || 'ÃƒÂ°Ã…Â¸Ã‚ÂÃ‚Â '}</div>`;
 
-      const wpp = `https://wa.me/${window.WPP_DIOGO||'5588981545786'}?text=Olá!%20Tenho%20interesse%20no%20imóvel:%20${encodeURIComponent(im.titulo)}`;
+      const wpp = `https://wa.me/${window.WPP_DIOGO||'5588981545786'}?text=OlÃƒÆ’Ã‚Â¡!%20Tenho%20interesse%20no%20imÃƒÆ’Ã‚Â³vel:%20${encodeURIComponent(im.titulo)}`;
 
       return `
-        <div class="prop-card reveal" data-type="${im.tipo}" data-id="${im.id}">
+        <div class="prop-card reveal" data-type="${tipo}" data-id="${im.id}">
           <div class="prop-photo" style="background:${gradient}">
             ${imgHtml}
             <div class="p-overlay"></div>
-            <span class="prop-badge ${badgeClass}">${im.tipo.charAt(0).toUpperCase()+im.tipo.slice(1)}</span>
-            <button class="prop-fav" onclick="toggleFav(this)">♡</button>
+            <span class="prop-badge ${badgeClass}">${tipo.charAt(0).toUpperCase()+tipo.slice(1)}</span>
+            <button class="prop-fav" onclick="toggleFav(this)">ÃƒÂ¢Ã¢â€žÂ¢Ã‚Â¡</button>
           </div>
           <div class="prop-body">
             <div class="prop-title">${im.titulo}</div>
             <div class="prop-meta">${meta}</div>
             <div class="prop-price">${preco}</div>
             <div class="prop-actions">
-              <button class="btn-sm btn-sm-green" onclick="window.open('${wpp}','_blank')">Ver Mais →</button>
-              <button class="btn-sm btn-sm-wpp" onclick="window.open('${wpp}','_blank')">💬 Wpp</button>
+              <button class="btn-sm btn-sm-green" onclick="window.open('${wpp}','_blank')">Ver Mais ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢</button>
+              <button class="btn-sm btn-sm-wpp" onclick="window.open('${wpp}','_blank')">ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¬ Wpp</button>
             </div>
           </div>
         </div>`;
@@ -180,41 +182,50 @@ const CC = {
     // Re-trigger reveal animations
     if (window.initReveal) window.initReveal();
   },
-
-  /* ─── EQUIPE ─── */
+  /* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ EQUIPE ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
   applyEquipe(list) {
     const container = document.querySelector('.team-grid, .equipe-grid, [data-cc-section="equipe"]');
     if (!container || !list.length) return;
 
-    container.innerHTML = list.filter(c => c.ativo !== false).map(c => {
-      const avatarHtml = c.foto_url
-        ? `<img src="${c.foto_url}" class="team-photo" alt="${c.nome}" loading="lazy">`
-        : `<div class="team-avatar" style="background:${c.avatar_cor||'linear-gradient(135deg,#22C55E,#065f46)'}">${c.avatar_iniciais||c.nome.slice(0,2).toUpperCase()}</div>`;
+    const ativos = list.filter(c => c.ativo !== false);
+    if (!ativos.length) return;
 
-      const wpp = `https://wa.me/${c.whatsapp||''}`;
+    container.innerHTML = ativos.map((c, idx) => {
+      const iniciais = c.avatar_iniciais || (c.nome || 'CC').slice(0, 2).toUpperCase();
+      const avatarCor = c.avatar_cor || 'linear-gradient(135deg,#22C55E,#065f46)';
+      const fotoHtml = c.foto_url
+        ? `<img src="${c.foto_url}" alt="${c.nome} - Corretor Casa Certa">`
+        : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:56px;background:var(--bg3)">${iniciais}</div>`;
+      const whatsapp = (c.whatsapp || '').replace(/\D/g, '');
+      const instagramAction = c.instagram ? `window.open('${c.instagram}','_blank')` : 'openInsta()';
+      const fallbackWppFn = idx % 2 === 0 ? 'openWppDiogo()' : 'openWppSalomao()';
+      const wppAction = whatsapp ? `window.open('https://wa.me/${whatsapp}','_blank')` : fallbackWppFn;
+
       return `
-        <div class="team-card reveal">
-          <div class="team-photo-wrap">${avatarHtml}</div>
-          <div class="team-info">
-            <div class="team-name">${c.nome}</div>
-            <div class="team-role">${c.cargo||'Corretor de Imóveis'}</div>
-            ${c.creci ? `<div class="team-creci">CRECI ${c.creci}</div>` : ''}
-            ${c.bio   ? `<p class="team-bio">${c.bio}</p>` : ''}
-            <div class="team-stats">
-              <div class="ts-item"><div class="ts-val">${c.anos_experiencia||0}+</div><div class="ts-label">Anos</div></div>
-              <div class="ts-item"><div class="ts-val">${c.clientes_atendidos||0}+</div><div class="ts-label">Clientes</div></div>
-              <div class="ts-item"><div class="ts-val">${c.avaliacao||4.9}★</div><div class="ts-label">Avaliação</div></div>
-            </div>
-            <div class="team-links">
-              ${c.whatsapp ? `<a href="${wpp}" target="_blank" class="team-link wpp">💬 WhatsApp</a>` : ''}
-              ${c.instagram ? `<a href="${c.instagram}" target="_blank" class="team-link ig">📷 Instagram</a>` : ''}
-            </div>
+      <div class="broker-card reveal ${idx % 2 === 0 ? 'from-left' : 'from-right'}">
+        <div class="broker-photo-wrap">
+          ${fotoHtml}
+          <div class="broker-photo-overlay"></div>
+          <div class="broker-avatar" style="position:absolute;bottom:-36px;left:24px;background:${avatarCor}">${iniciais}</div>
+        </div>
+        <div class="broker-body">
+          <div class="broker-name">${c.nome || 'Corretor'}</div>
+          <div class="broker-role">${c.cargo || 'Corretor de ImÃƒÂ³veis'}</div>
+          <div class="broker-creci">Ã¢Å“â€¦ CRECI ${c.creci || 'Ã¢â‚¬â€'}</div>
+          <p class="broker-bio">${c.bio || 'Atendimento personalizado para compra e venda de imÃƒÂ³veis em QuixadÃƒÂ¡ e regiÃƒÂ£o.'}</p>
+          <div class="broker-stats">
+            <div class="bk-stat"><div class="bk-stat-val">${c.anos_experiencia || 0}+</div><div class="bk-stat-label">Anos exp.</div></div>
+            <div class="bk-stat"><div class="bk-stat-val">${c.clientes_atendidos || 0}+</div><div class="bk-stat-label">Clientes</div></div>
+            <div class="bk-stat"><div class="bk-stat-val">${c.avaliacao || 4.9}Ã¢Ëœâ€¦</div><div class="bk-stat-label">AvaliaÃƒÂ§ÃƒÂ£o</div></div>
           </div>
-        </div>`;
+          <div class="broker-btns">
+            <button class="btn-wpp-broker" onclick="${wppAction}">Ã°Å¸â€™Â¬ WhatsApp</button>
+            <button class="btn-insta-broker" onclick="${instagramAction}">Ã°Å¸â€œÂ·</button>
+          </div>
+        </div>
+      </div>`;
     }).join('');
 
-    // Atualiza modal seletor de corretor
-    CC.applyEquipeModal(list);
     if (window.initReveal) window.initReveal();
   },
 
@@ -228,12 +239,12 @@ const CC = {
           : `<div class="broker-avatar" style="background:${c.avatar_cor||'linear-gradient(135deg,#22C55E,#065f46)'}">${c.avatar_iniciais||c.nome.slice(0,2).toUpperCase()}</div>`}
         <div>
           <div class="broker-name">${c.nome}</div>
-          <div class="broker-creci">CRECI ${c.creci||'—'}</div>
+          <div class="broker-creci">CRECI ${c.creci||'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â'}</div>
         </div>
       </div>`).join('');
   },
 
-  /* ─── MARQUEE ─── */
+  /* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ MARQUEE ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
   applyMarquee(items) {
     const track = document.getElementById('marqueeTrack');
     if (!track || !items) return;
@@ -245,7 +256,7 @@ const CC = {
     track.innerHTML = all.map(t => `<span class="marquee-item">${t}</span>`).join('');
   },
 
-  /* ─── FAQ ─── */
+  /* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ FAQ ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
   applyFaq(list) {
     const container = document.querySelector('.faq-list, [data-cc-section="faq"]');
     if (!container || !list.length) return;
@@ -260,7 +271,7 @@ const CC = {
     if (window.initReveal) window.initReveal();
   },
 
-  /* ─── SEO ─── */
+  /* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ SEO ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
   async applySEO() {
     try {
       const res = await fetch('/api/seo/home').then(r => r.json());
