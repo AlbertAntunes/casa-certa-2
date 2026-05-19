@@ -202,7 +202,7 @@ const CC = {
       const wppAction = whatsapp ? `window.open('https://wa.me/${whatsapp}','_blank')` : fallbackWppFn;
 
       return `
-      <div class="broker-card reveal ${idx % 2 === 0 ? 'from-left' : 'from-right'}">
+      <div class="broker-card reveal visible ${idx % 2 === 0 ? 'from-left' : 'from-right'}">
         <div class="broker-photo-wrap">
           ${fotoHtml}
           <div class="broker-photo-overlay"></div>
