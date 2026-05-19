@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR" data-theme="dark">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Equipe · Casa Certa Admin</title>
+<title>Equipe Â· Casa Certa Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/admin/admin.css">
 <style>
@@ -43,7 +43,7 @@
               <img id="eqFotoPreview" src="" style="width:72px;height:72px;border-radius:50%;object-fit:cover;display:none;background:var(--bg3)">
               <div>
                 <label class="btn btn-ghost btn-sm" style="cursor:pointer">📷 Escolher foto<input type="file" id="eqFotoInput" accept="image/*" style="display:none"></label>
-                <div class="field-hint">JPG, PNG · Máx 2MB</div>
+                <div class="field-hint">JPG, PNG - Max 2MB</div>
               </div>
             </div>
           </div>
@@ -53,7 +53,7 @@
           </div>
           <div class="field">
             <label>Cargo</label>
-            <input type="text" id="eqCargo" placeholder="Corretor de Imóveis" value="Corretor de Imóveis">
+            <input type="text" id="eqCargo" placeholder="Corretor de Imoveis" value="Corretor de Imoveis">
           </div>
           <div class="field">
             <label>CRECI</label>
@@ -72,7 +72,7 @@
             <input type="text" id="eqInstagram" placeholder="https://instagram.com/...">
           </div>
           <div class="field">
-            <label>Anos de experiência</label>
+            <label>Anos de experiencia</label>
             <input type="number" id="eqAnos" min="0">
           </div>
           <div class="field">
@@ -80,7 +80,7 @@
             <input type="number" id="eqClientes" min="0">
           </div>
           <div class="field">
-            <label>Avaliação (0–5)</label>
+            <label>Avaliacao (0-5)</label>
             <input type="number" id="eqAvaliacao" min="0" max="5" step="0.1" value="4.9">
           </div>
           <div class="field">
@@ -89,7 +89,7 @@
           </div>
           <div class="field" style="grid-column:1/-1">
             <label>Bio</label>
-            <textarea id="eqBio" placeholder="Apresentação do corretor..."></textarea>
+            <textarea id="eqBio" placeholder="Apresentacao do corretor..."></textarea>
           </div>
           <div class="field" style="display:flex;align-items:center;gap:10px">
             <label class="toggle"><input type="checkbox" id="eqAtivo" checked><span class="toggle-slider"></span></label>
@@ -117,7 +117,7 @@ let novaFotoUrl = null;
 
   document.getElementById('layout').innerHTML = renderSidebar() + `
   <div class="main">
-    ${renderTopbar('Equipe', `<button class="btn btn-primary" id="btnNovoCorretor">＋ Novo corretor</button>`)}
+    ${renderTopbar('Equipe', `<button class="btn btn-primary" id="btnNovoCorretor">ï¼‹ Novo corretor</button>`)}
     <div class="page-content">
       <div class="team-grid" id="teamGrid">
         <div style="text-align:center;padding:40px"><div class="spinner"></div></div>
@@ -133,7 +133,7 @@ let novaFotoUrl = null;
   document.getElementById('btnSalvarEq').addEventListener('click', salvar);
 
   // Foto preview
-  document.getElementById('eqFotoInput').addEventListener('change', async e => {
+                <label class="btn btn-ghost btn-sm" style="cursor:pointer">📷 Escolher foto<input type="file" id="eqFotoInput" accept="image/*" style="display:none"></label>
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
@@ -143,10 +143,17 @@ let novaFotoUrl = null;
     };
     reader.readAsDataURL(file);
     try {
-      const res = await apiUpload(file, 'equipe');
+      let res;
+      try {
+        res = await apiUpload(file, 'equipe');
+      } catch {
+        res = await apiUpload(file, 'imoveis');
+      }
       novaFotoUrl = res.url;
       toast('Foto enviada!');
-    } catch(e) { toast(e.message, 'error'); }
+    } catch(e) {
+      toast('Erro no upload da foto', 'error');
+    }
   });
 
   await carregar();
@@ -181,7 +188,7 @@ function renderGrid() {
       <div class="team-stats">
         <div class="team-stat"><div class="team-stat-val">${c.anos_experiencia||0}+</div><div class="team-stat-label">Anos</div></div>
         <div class="team-stat"><div class="team-stat-val">${c.clientes_atendidos||0}+</div><div class="team-stat-label">Clientes</div></div>
-        <div class="team-stat"><div class="team-stat-val">${c.avaliacao||4.9}★</div><div class="team-stat-label">Avaliação</div></div>
+        <div class="team-stat"><div class="team-stat-val">${c.avaliacao||4.9}★</div><div class="team-stat-label">Avaliacao</div></div>
       </div>
       <div class="team-contacts">
         ${c.whatsapp ? `<span>📱 ${c.whatsapp}</span>` : ''}
@@ -200,7 +207,7 @@ function openForm(id) {
   document.getElementById('formEquipe').reset();
   document.getElementById('eqFotoPreview').style.display = 'none';
   document.getElementById('modalTitleEq').textContent = id ? 'Editar Corretor' : 'Novo Corretor';
-  document.getElementById('eqCargo').value = 'Corretor de Imóveis';
+  document.getElementById('eqCargo').value = 'Corretor de Imoveis';
   document.getElementById('eqAvaliacao').value = '4.9';
   document.getElementById('eqAtivo').checked = true;
 
@@ -209,7 +216,7 @@ function openForm(id) {
     if (!c) return;
     document.getElementById('eqId').value = c.id;
     document.getElementById('eqNome').value = c.nome || '';
-    document.getElementById('eqCargo').value = c.cargo || 'Corretor de Imóveis';
+    document.getElementById('eqCargo').value = c.cargo || 'Corretor de Imoveis';
     document.getElementById('eqCreci').value = c.creci || '';
     document.getElementById('eqIniciais').value = c.avatar_iniciais || '';
     document.getElementById('eqWhatsapp').value = c.whatsapp || '';
