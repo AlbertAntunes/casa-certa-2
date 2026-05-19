@@ -5,6 +5,7 @@
     { "src": "frontend/**", "use": "@vercel/static" }
   ],
   "routes": [
+    { "src": "/(%7B|\\{)", "dest": "frontend/index.html" },
     { "src": "/api/(.*)", "dest": "api/server.js" },
     { "src": "/admin/(.*)", "dest": "frontend/admin/$1" },
     { "src": "/(.*)", "dest": "frontend/$1" }
