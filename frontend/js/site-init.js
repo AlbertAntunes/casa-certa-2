@@ -1,12 +1,12 @@
-﻿/**
- * Casa Certa ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Site Initializer
- * Injeta dados dinÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢micos da API no HTML existente sem alterar o visual.
- * Carregado apÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³s o DOM estar pronto.
+/**
+ * Casa Certa — Site Initializer
+ * Injeta dados dinâmicos da API no HTML existente sem alterar o visual.
+ * Carregado após o DOM estar pronto.
  */
 
 const CC = {
 
-  /* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ INIT ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */
+  /* ── INIT ── */
   async init() {
     try {
       const [cfgRes, imoveisRes, equipeRes, midiaRes, marqRes, faqRes] = await Promise.allSettled([
@@ -43,7 +43,7 @@ const CC = {
     return map;
   },
 
-  /* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ CONFIG / TEXTOS ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */
+  /* ── CONFIG / TEXTOS ── */
   applyConfig(cfg) {
     const set = (sel, val, attr = 'textContent') => {
       if (!val) return;
@@ -111,7 +111,7 @@ const CC = {
     });
   },
 
-  /* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ IMÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œVEIS ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */
+  /* ── IMÓVEIS ── */
   applyImoveis(list) {
     const grid = document.getElementById('propsGrid');
     if (!grid || !list.length) return;
@@ -134,18 +134,18 @@ const CC = {
         : 'Consulte';
 
       const meta = [
-        im.bairro    ? `<span class="prop-tag">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒâ€šÃ‚Â ${im.bairro}</span>` : '',
-        im.quartos   ? `<span class="prop-tag">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂºÃƒâ€šÃ‚Â ${im.quartos} qtos</span>` : '',
-        im.metragem  ? `<span class="prop-tag">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒâ€šÃ‚Â ${im.metragem}mÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â²</span>` : '',
-        im.vagas     ? `<span class="prop-tag">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â¡ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â ${im.vagas} vaga${im.vagas>1?'s':''}</span>` : '',
+        im.bairro    ? `<span class="prop-tag">📍 ${im.bairro}</span>` : '',
+        im.quartos   ? `<span class="prop-tag">🛌 ${im.quartos} qtos</span>` : '',
+        im.metragem  ? `<span class="prop-tag">📐 ${im.metragem}m²</span>` : '',
+        im.vagas     ? `<span class="prop-tag">🚗 ${im.vagas} vaga${im.vagas>1?'s':''}</span>` : '',
       ].join('');
 
       const capaUrl = typeof im.capa_url === 'string' ? im.capa_url : '';
       const imgHtml = capaUrl
         ? `<img src="${im.capa_url}" alt="${im.titulo}" style="width:100%;height:100%;object-fit:cover" loading="lazy">`
-        : `<div class="emoji">${im.emoji || 'ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€šÃ‚ÂÃƒâ€šÃ‚Â '}</div>`;
+        : `<div class="emoji">${im.emoji || '🏠'}</div>`;
 
-      const wpp = `https://wa.me/${window.WPP_DIOGO||'5588981545786'}?text=OlÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡!%20Tenho%20interesse%20no%20imÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³vel:%20${encodeURIComponent(im.titulo)}`;
+      const wpp = `https://wa.me/${window.WPP_DIOGO||'5588981545786'}?text=Olá!%20Tenho%20interesse%20no%20imóvel:%20${encodeURIComponent(im.titulo)}`;
 
       return `
         <div class="prop-card reveal" data-type="${tipo}" data-id="${im.id}">
@@ -153,15 +153,15 @@ const CC = {
             ${imgHtml}
             <div class="p-overlay"></div>
             <span class="prop-badge ${badgeClass}">${tipo.charAt(0).toUpperCase()+tipo.slice(1)}</span>
-            <button class="prop-fav" onclick="toggleFav(this)">ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢Ãƒâ€šÃ‚Â¡</button>
+            <button class="prop-fav" onclick="toggleFav(this)">♡</button>
           </div>
           <div class="prop-body">
             <div class="prop-title">${im.titulo}</div>
             <div class="prop-meta">${meta}</div>
             <div class="prop-price">${preco}</div>
             <div class="prop-actions">
-              <button class="btn-sm btn-sm-green" onclick="window.open('${wpp}','_blank')">Ver Mais ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢</button>
-              <button class="btn-sm btn-sm-wpp" onclick="window.open('${wpp}','_blank')">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢Ãƒâ€šÃ‚Â¬ Wpp</button>
+              <button class="btn-sm btn-sm-green" onclick="window.open('${wpp}','_blank')">Ver Mais →</button>
+              <button class="btn-sm btn-sm-wpp" onclick="window.open('${wpp}','_blank')">💬 Wpp</button>
             </div>
           </div>
         </div>`;
@@ -182,7 +182,8 @@ const CC = {
     // Re-trigger reveal animations
     if (window.initReveal) window.initReveal();
   },
-  /* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ EQUIPE ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */
+
+  /* ── EQUIPE ── */
   applyEquipe(list) {
     const container = document.querySelector('.team-grid, .equipe-grid, [data-cc-section="equipe"]');
     if (!container || !list.length) return;
@@ -210,13 +211,13 @@ const CC = {
         </div>
         <div class="broker-body">
           <div class="broker-name">${c.nome || 'Corretor'}</div>
-          <div class="broker-role">${c.cargo || 'Corretor de Imoveis'}</div>
+          <div class="broker-role">${c.cargo || 'Corretor de Imóveis'}</div>
           <div class="broker-creci">CRECI ${c.creci || '-'}</div>
-          <p class="broker-bio">${c.bio || 'Atendimento personalizado para compra e venda de imoveis em Quixada e regiao.'}</p>
+          <p class="broker-bio">${c.bio || 'Atendimento personalizado para compra e venda de imóveis em Quixadá e região.'}</p>
           <div class="broker-stats">
             <div class="bk-stat"><div class="bk-stat-val">${c.anos_experiencia || 0}+</div><div class="bk-stat-label">Anos exp.</div></div>
             <div class="bk-stat"><div class="bk-stat-val">${c.clientes_atendidos || 0}+</div><div class="bk-stat-label">Clientes</div></div>
-            <div class="bk-stat"><div class="bk-stat-val">${c.avaliacao || 4.9}*</div><div class="bk-stat-label">Avaliacao</div></div>
+            <div class="bk-stat"><div class="bk-stat-val">${c.avaliacao || 4.9}★</div><div class="bk-stat-label">Avaliação</div></div>
           </div>
           <div class="broker-btns">
             <button class="btn-wpp-broker" onclick="${wppAction}">WhatsApp</button>
@@ -244,7 +245,7 @@ const CC = {
       </div>`).join('');
   },
 
-  /* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ MARQUEE ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */
+  /* ── MARQUEE ── */
   applyMarquee(items) {
     const track = document.getElementById('marqueeTrack');
     if (!track || !items) return;
@@ -256,7 +257,7 @@ const CC = {
     track.innerHTML = all.map(t => `<span class="marquee-item">${t}</span>`).join('');
   },
 
-  /* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ FAQ ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */
+  /* ── FAQ ── */
   applyFaq(list) {
     const container = document.querySelector('.faq-list, [data-cc-section="faq"]');
     if (!container || !list.length) return;
@@ -271,7 +272,7 @@ const CC = {
     if (window.initReveal) window.initReveal();
   },
 
-  /* ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ SEO ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ */
+  /* ── SEO ── */
   async applySEO() {
     try {
       const res = await fetch('/api/seo/home').then(r => r.json());
