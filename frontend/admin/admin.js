@@ -403,10 +403,12 @@ const formatPrice = fmtPreco;
 const formatDate = fmtDate;
 
 /* ────────────────────────────────────────
-   SIDEBAR
+   SIDEBAR (CORRIGIDA E ATUALIZADA)
 ──────────────────────────────────────── */
 
 function renderSidebar(activePage) {
+
+  const container = document.getElementById('sidebar-container') || document.getElementById('sidebar');
 
   const page =
     activePage ||
@@ -417,7 +419,7 @@ function renderSidebar(activePage) {
   const link = (href, icon, label) => {
 
     const active =
-      href === page
+      href === page || page.includes(href.replace('.html', ''))
         ? `
           style="
             background:rgba(34,197,94,.12);
@@ -435,7 +437,7 @@ function renderSidebar(activePage) {
     `;
   };
 
-  return `
+  const htmlContent = `
   <div class="sidebar" id="sidebar">
 
     <div class="sidebar-logo">
@@ -460,6 +462,7 @@ function renderSidebar(activePage) {
 
         ${link('dashboard.html','📊','Dashboard')}
         ${link('imoveis.html','🏠','Imóveis')}
+        ${link('agendamentos.html','📅','Agenda de Visitas')}
         ${link('midia.html','🖼️','Mídia da Home')}
 
       </div>
@@ -472,7 +475,7 @@ function renderSidebar(activePage) {
 
         ${link('equipe.html','👥','Equipe')}
         ${link('depoimentos.html','⭐','Depoimentos')}
-        ${link('faq.html','❓','FAQ')}
+        ${link('faq.html', '❓', 'FAQ')}
         ${link('conteudo.html','✏️','Textos do Site')}
 
       </div>
@@ -532,6 +535,11 @@ function renderSidebar(activePage) {
 
   </div>
   `;
+
+  if (container) {
+    container.innerHTML = htmlContent;
+  }
+  return htmlContent;
 }
 
 /* ────────────────────────────────────────
@@ -570,10 +578,21 @@ function initSidebar(activePage) {
 }
 
 /* ────────────────────────────────────────
-   TOPBAR
+   TOPBAR (CORRIGIDA)
 ──────────────────────────────────────── */
 
 function renderTopbar(title, actionsHtml = '') {
+
+  setTimeout(() => {
+    const btn = document.getElementById('mobileMenuBtn');
+    if (btn) {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.toggle('open');
+      };
+    }
+  }, 50);
 
   return `
   <div class="topbar">
@@ -582,7 +601,6 @@ function renderTopbar(title, actionsHtml = '') {
       id="mobileMenuBtn"
       class="mobile-menu-btn"
       style="
-        display:none;
         background:none;
         border:none;
         cursor:pointer;

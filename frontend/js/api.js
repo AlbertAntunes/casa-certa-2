@@ -166,5 +166,7 @@ const Api = {
     }
   }
 };
-
+include:{
+   imagens:true
+}
 window.Api = Api;

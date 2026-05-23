@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Imóvel · Casa Certa</title>
+<meta name="description" content="Detalhes do imóvel - Casa Certa Imóveis, Quixadá CE">
+<link rel="canonical" href="">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Casa Certa Imóveis">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ════ VARIÁVEIS (identidade visual do sistema) ════ */
+:root {
+  --g400:#22c55e; --g500:#16a34a; --g600:#047857; --g700:#065f46;
+  --gold:#c8972f; --gold2:#e8b84b;
+  --bg:#070d09; --bg2:#0b1510; --bg3:#111f17;
+  --card:#111a14; --card2:#192419;
+  --border:rgba(34,197,94,.10); --border2:rgba(34,197,94,.20);
+  --text:#f0fdf4; --text2:#a7c3b0; --text3:#5a7a65;
+  --danger:#ef4444; --warn:#f59e0b;
+  --r:14px; --r2:22px; --tr:all .3s cubic-bezier(.4,0,.2,1);
+  --sh:0 8px 32px rgba(0,0,0,.55);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
+body::before{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 70% at 60% -10%,rgba(34,197,94,.18) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 50% at -10% 80%,rgba(5,46,22,.9) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 20%,rgba(200,151,47,.07) 0%,transparent 55%),
+    radial-gradient(ellipse 50% 40% at 50% 100%,rgba(34,197,94,.06) 0%,transparent 60%),
+    var(--bg);
+}
+body::after{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2322C55E' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+  opacity:.5;
+}
+
+/* ════ SCROLL PROGRESS BAR ════ */
+#progress{
+  position:fixed;top:0;left:0;z-index:9000;
+  height:3px;width:0;
+  background:linear-gradient(90deg,var(--g400),var(--gold));
+  transition:width .1s linear;
+  box-shadow:0 0 12px var(--g400);
+}
+
+/* ════ SCROLLBAR ════ */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--g600);border-radius:99px}
+
+/* ════ FLOATING SHAPES ════ */
+.hero-shapes{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.hero-shape{
+  position:absolute;border-radius:50%;
+  background:radial-gradient(circle,rgba(34,197,94,.13),transparent 70%);
+  animation:floatShape 8s ease-in-out infinite;
+}
+.hero-shape:nth-child(1){width:600px;height:600px;top:-200px;right:-100px;animation-delay:0s}
+.hero-shape:nth-child(2){width:400px;height:400px;bottom:-100px;left:10%;animation-delay:-3s}
+.hero-shape:nth-child(3){width:200px;height:200px;top:40%;right:20%;animation-delay:-5s}
+@keyframes floatShape{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-30px) scale(1.05)}}
+h1,h2,h3,h4{font-family:"Playfair Display",serif;line-height:1.2}
+img{display:block;max-width:100%}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;border:none;outline:none;background:none;font-family:inherit}
+
+/* ════ TOPNAV ════ */
+.topnav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(7,13,9,.92);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:14px 24px;display:flex;align-items:center;gap:14px;
+}
+.nav-logo{font-family:"Playfair Display",serif;font-size:20px;font-weight:800;flex:1}
+.nav-logo span{color:var(--g400)}
+.btn-back{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 16px;border-radius:99px;
+  background:var(--bg3);border:1px solid var(--border2);
+  color:var(--text2);font-size:13px;font-weight:600;
+  transition:var(--tr);white-space:nowrap;
+}
+.btn-back:hover{border-color:var(--g400);color:var(--g400)}
+.btn-share{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:99px;
+  border:1px solid var(--border2);color:var(--text3);
+  font-size:13px;font-weight:600;transition:var(--tr);
+}
+.btn-share:hover{border-color:var(--g400);color:var(--g400)}
+.imovel-card img{
+
+    width:100%;
+    height:320px;
+
+    object-fit:cover;
+    object-position:center;
+
+    display:block;
+
+    transition:0.4s;
+
+}
+/* ════ GALLERY ════ */
+.gallery-section{background:var(--bg2)}
+.gallery-main{
+  position:relative;width:100%;
+  aspect-ratio:16/9;max-height:540px;
+  overflow:hidden;background:var(--card);
+  cursor:pointer;
+}
+.gallery-main-media{
+  width:100%;height:100%;object-fit:cover;display:block;
+  transition:opacity .4s ease;
+}
+.gallery-placeholder{
+  width:100%;height:100%;display:flex;align-items:center;
+  justify-content:center;font-size:96px;
+  background:radial-gradient(circle at 50% 40%,rgba(34,197,94,.06),transparent 65%);
+}
+.gallery-nav{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:46px;height:46px;border-radius:50%;
+  background:rgba(0,0,0,.55);color:#fff;
+  font-size:24px;display:flex;align-items:center;justify-content:center;
+  z-index:10;transition:var(--tr);
+  backdrop-filter:blur(4px);
+}
+.gallery-nav:hover{background:rgba(34,197,94,.75);transform:translateY(-50%) scale(1.06)}
+.gallery-nav.prev{left:16px}
+.gallery-nav.next{right:16px}
+.gallery-counter{
+  position:absolute;bottom:14px;right:14px;
+  background:rgba(0,0,0,.65);color:#fff;
+  font-size:12px;font-weight:700;
+  padding:5px 12px;border-radius:99px;
+  backdrop-filter:blur(4px);
+}
+.gallery-badge-tipo{
+  position:absolute;top:16px;left:16px;
+  padding:5px 14px;border-radius:99px;
+  font-size:12px;font-weight:700;
+  backdrop-filter:blur(4px);
+}
+.badge-venda{background:rgba(34,197,94,.85);color:#fff}
+.badge-aluguel{background:rgba(59,130,246,.85);color:#fff}
+.badge-terreno{background:rgba(245,158,11,.85);color:#fff}
+
+.gallery-thumbs{
+  display:flex;gap:8px;padding:10px 20px;
+  overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+}
+.gallery-thumbs::-webkit-scrollbar{height:3px}
+.gallery-thumbs::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+.thumb{
+  flex-shrink:0;width:78px;height:56px;border-radius:10px;
+  overflow:hidden;cursor:pointer;position:relative;
+  border:2px solid transparent;transition:var(--tr);
+}
+.thumb.active{border-color:var(--g400);box-shadow:0 0 0 2px rgba(34,197,94,.3)}
+.thumb img,.thumb video{width:100%;height:100%;object-fit:cover;pointer-events:none}
+.thumb-vid-icon{
+  position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;background:rgba(0,0,0,.38);
+  font-size:16px;color:#fff;
+}
+
+/* ════ LAYOUT ════ */
+.container{max-width:1120px;margin:0 auto;padding:0 24px}
+.content-wrap{
+  display:grid;grid-template-columns:1fr 360px;gap:36px;
+  padding:36px 0 72px;
+}
+@media(max-width:960px){
+  .content-wrap{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .container{padding:0 16px}
+  .gallery-main{aspect-ratio:4/3}
+}
+
+/* ════ PROPRIEDADE HEADER ════ */
+.prop-badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.badge{
+  display:inline-flex;align-items:center;padding:4px 12px;
+  border-radius:99px;font-size:11px;font-weight:700;
+}
+.badge-tipo-venda{background:rgba(34,197,94,.14);color:var(--g400)}
+.badge-tipo-aluguel{background:rgba(59,130,246,.14);color:#60a5fa}
+.badge-tipo-terreno{background:rgba(245,158,11,.14);color:#fbbf24}
+.badge-destaque{background:rgba(200,151,47,.14);color:var(--gold2)}
+.badge-status-vendido{background:rgba(239,68,68,.14);color:#f87171}
+.badge-status-inativo{background:rgba(156,163,175,.12);color:#9ca3af}
+
+.prop-title{font-size:clamp(22px,4vw,36px);font-weight:900;margin-bottom:12px;line-height:1.15}
+.prop-location{
+  display:flex;align-items:center;gap:8px;
+  color:var(--text3);font-size:14px;margin-bottom:28px;
+}
+
+/* ════ FEATURES GRID ════ */
+.features-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));
+  gap:12px;margin-bottom:36px;
+}
+.feat-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px 12px;text-align:center;
+  transition:var(--tr);
+}
+.feat-card:hover{border-color:var(--border2)}
+.feat-icon{font-size:22px;margin-bottom:8px}
+.feat-val{
+  font-family:"Playfair Display",serif;
+  font-size:20px;font-weight:900;color:var(--g400);line-height:1;
+}
+.feat-label{font-size:11px;color:var(--text3);margin-top:4px;font-weight:500}
+
+/* ════ SEÇÕES ════ */
+.section-block{margin-bottom:36px}
+.section-label{
+  font-size:11px;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--text3);
+  margin-bottom:14px;display:flex;align-items:center;gap:10px;
+}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.desc-text{
+  font-size:15px;color:var(--text2);line-height:1.78;
+  white-space:pre-line;
+}
+
+/* ════ CTA SIDEBAR ════ */
+.cta-card{
+  background:var(--card);border:1.5px solid var(--border2);
+  border-radius:var(--r2);padding:28px;
+  position:sticky;top:82px;
+}
+.cta-price{
+  font-family:"Playfair Display",serif;
+  font-size:34px;font-weight:900;color:var(--g400);margin-bottom:4px;
+  line-height:1;
+}
+.cta-price-label{font-size:12px;color:var(--text3);margin-bottom:24px;font-weight:500}
+.btn-wpp{
+  width:100%;padding:15px;border-radius:var(--r);
+  background:#25D366;color:#fff;font-size:15px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:var(--tr);margin-bottom:10px;border:none;cursor:pointer;font-family:inherit;
+}
+.btn-wpp:hover{background:#1ebe58;transform:translateY(-1px);box-shadow:0 8px 24px rgba(37,211,102,.35)}
+.btn-wpp-outline{
+  width:100%;padding:12px;border-radius:var(--r);
+  background:transparent;border:1.5px solid rgba(37,211,102,.3);
+  color:#4ade80;font-size:14px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  transition:var(--tr);cursor:pointer;font-family:inherit;
+}
+.btn-wpp-outline:hover{border-color:#25D366;color:#25D366;background:rgba(37,211,102,.06)}
+.cta-or{text-align:center;color:var(--text3);font-size:12px;margin:12px 0;font-weight:600}
+
+.cta-agents{margin-top:22px;padding-top:22px;border-top:1px solid var(--border)}
+.cta-agents-label{
+  font-size:11px;color:var(--text3);text-transform:uppercase;
+  letter-spacing:.1em;font-weight:700;margin-bottom:12px;
+}
+.agent-row{
+  display:flex;align-items:center;gap:11px;
+  padding:10px;margin:0 -10px;border-radius:var(--r);
+  cursor:pointer;transition:var(--tr);
+}
+.agent-row:hover{background:var(--bg3)}
+.agent-av{
+  width:38px;height:38px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;color:#fff;overflow:hidden;
+  background:linear-gradient(135deg,var(--g400),var(--g700));
+}
+.agent-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.agent-name{font-size:13px;font-weight:600}
+.agent-creci{font-size:11px;color:var(--text3);margin-top:1px}
+.agent-wpp-icon{margin-left:auto;color:#25D366;flex-shrink:0}
+
+/* ════ MOBILE BAR ════ */
+.mobile-bar{
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;
+  background:rgba(7,13,9,.96);backdrop-filter:blur(14px);
+  border-top:1px solid var(--border);padding:12px 20px;
+  align-items:center;gap:12px;
+}
+@media(max-width:960px){
+  .mobile-bar{display:flex}
+  .content-wrap{padding-bottom:88px}
+  .cta-card{display:none}
+}
+.mobile-bar-price-val{
+  font-family:"Playfair Display",serif;
+  font-size:20px;font-weight:900;color:var(--g400);line-height:1;
+}
+.mobile-bar-price-label{font-size:11px;color:var(--text3);margin-top:2px}
+.mobile-bar-btn{
+  flex-shrink:0;padding:12px 18px;border-radius:var(--r);
+  background:#25D366;color:#fff;font-size:14px;font-weight:700;
+  display:flex;align-items:center;gap:8px;transition:var(--tr);
+  border:none;cursor:pointer;font-family:inherit;
+}
+.mobile-bar-btn:hover{background:#1ebe58}
+
+/* ════ LOADING / ERROR ════ */
+.page-loader{
+  min-height:55vh;display:flex;align-items:center;
+  justify-content:center;flex-direction:column;gap:16px;color:var(--text3);
+  padding:40px 20px;
+}
+.spinner{
+  width:36px;height:36px;
+  border:3px solid var(--border2);border-top-color:var(--g400);
+  border-radius:50%;animation:spin .65s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ════ LIGHTBOX ════ */
+.lightbox{
+  position:fixed;inset:0;z-index:9999;
+  background:rgba(0,0,0,.93);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;padding:20px;
+  flex-direction:column;gap:14px;
+}
+.lightbox.open{display:flex}
+.lightbox img,.lightbox video{
+  max-width:100%;max-height:85vh;border-radius:12px;object-fit:contain;
+}
+.lightbox-close{
+  position:fixed;top:18px;right:20px;width:42px;height:42px;
+  border-radius:50%;background:rgba(255,255,255,.1);
+  color:#fff;font-size:20px;display:flex;align-items:center;
+  justify-content:center;cursor:pointer;transition:var(--tr);z-index:10;border:none;
+}
+.lightbox-close:hover{background:rgba(255,255,255,.2)}
+.lightbox-nav{
+  position:fixed;top:50%;transform:translateY(-50%);
+  width:48px;height:48px;border-radius:50%;
+  background:rgba(255,255,255,.1);color:#fff;font-size:26px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:var(--tr);z-index:10;border:none;
+}
+.lightbox-nav:hover{background:rgba(34,197,94,.5)}
+.lightbox-nav.prev{left:16px}
+.lightbox-nav.next{right:16px}
+.lightbox-counter{color:rgba(255,255,255,.55);font-size:13px;font-weight:600}
+
+/* ════ FOOTER ════ */
+.page-footer{
+  border-top:1px solid var(--border);padding:28px 24px;text-align:center;
+  background:transparent;
+}
+.footer-logo{font-family:"Playfair Display",serif;font-size:18px;font-weight:800;margin-bottom:6px}
+.footer-logo span{color:var(--g400)}
+.footer-copy{font-size:13px;color:var(--text3);margin-bottom:8px}
+.dev-credit{
+  font-size:11px;color:var(--text3);opacity:.65;
+  margin-top:4px;
+}
+.dev-credit a{color:var(--g400);text-decoration:none;font-weight:600;opacity:1}
+.dev-credit a:hover{text-decoration:underline}
+
+/* ════ AMBIENT GLOW BLOBS ════ */
+.ambient-blob{
+  position:fixed;border-radius:50%;pointer-events:none;z-index:-1;filter:blur(80px);
+  animation:blobDrift 12s ease-in-out infinite alternate;
+}
+.ambient-blob-1{
+  width:500px;height:500px;
+  background:radial-gradient(circle,rgba(34,197,94,.06) 0%,transparent 70%);
+  top:-100px;left:-100px;animation-duration:14s;
+}
+.ambient-blob-2{
+  width:400px;height:400px;
+  background:radial-gradient(circle,rgba(200,151,47,.05) 0%,transparent 70%);
+  bottom:20%;right:-80px;animation-duration:18s;animation-delay:-6s;
+}
+.ambient-blob-3{
+  width:300px;height:300px;
+  background:radial-gradient(circle,rgba(34,197,94,.04) 0%,transparent 70%);
+  bottom:-80px;left:30%;animation-duration:16s;animation-delay:-3s;
+}
+@keyframes blobDrift{
+  0%{transform:translate(0,0) scale(1)}
+  100%{transform:translate(30px,40px) scale(1.08)}
+}
+
+/* ════ GALLERY IMAGE TRANSITION ════ */
+#mediaSlot{width:100%;height:100%;position:relative}
+#mediaSlot img,#mediaSlot video{
+  width:100%;height:100%;object-fit:cover;display:block;
+  transition:opacity .45s ease;
+}
+/* ═════════ GALLERY ═════════ */
+
+.gallery-section{
+
+    width:100%;
+    max-width:1500px;
+
+    margin:40px auto;
+
+    padding:0 24px;
+
+}
+
+/* IMAGEM PRINCIPAL */
+
+.gallery-main{
+
+    width:100%;
+    height:72vh;
+
+    min-height:520px;
+    max-height:850px;
+
+    border-radius:32px;
+
+    overflow:hidden;
+
+    position:relative;
+
+    background:#07150d;
+
+    cursor:pointer;
+
+}
+
+/* IMAGEM */
+
+.gallery-main img{
+
+    width:100%;
+    height:100%;
+
+    object-fit:cover;
+    object-position:center;
+
+    display:block;
+
+}
+
+/* THUMBNAILS */
+
+.gallery-thumbs{
+
+    display:flex;
+
+    gap:14px;
+
+    margin-top:18px;
+
+    overflow-x:auto;
+
+    padding-bottom:4px;
+
+}
+
+/* THUMB */
+
+.gallery-thumb{
+
+    min-width:120px;
+    width:120px;
+
+    height:90px;
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+    cursor:pointer;
+
+    border:3px solid transparent;
+
+    transition:.3s;
+
+    flex-shrink:0;
+
+}
+
+.gallery-thumb.active{
+
+    border-color:#31ff8b;
+
+}
+
+.gallery-thumb img{
+
+    width:100%;
+    height:100%;
+
+    object-fit:cover;
+
+}
+
+/* RESPONSIVO */
+
+@media(max-width:768px){
+
+    .gallery-main{
+
+        height:42vh;
+
+        min-height:300px;
+
+        border-radius:22px;
+
+    }
+
+    .gallery-thumb{
+
+        width:90px;
+        min-width:90px;
+
+        height:70px;
+
+    }
+
+}
+</style>
+</head>
+<body>
+
+<!-- ══ SCROLL PROGRESS ══ -->
+<div id="progress"></div>
+
+<!-- ══ FLOATING SHAPES ══ -->
+<div class="hero-shapes">
+  <div class="hero-shape"></div>
+  <div class="hero-shape"></div>
+  <div class="hero-shape"></div>
+</div>
+
+<!-- ══ AMBIENT BLOBS ══ -->
+<div class="ambient-blob ambient-blob-1"></div>
+<div class="ambient-blob ambient-blob-2"></div>
+<div class="ambient-blob ambient-blob-3"></div>
+
+<!-- ══ TOPNAV ══ -->
+<nav class="topnav">
+  <a href="/" class="btn-back">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Voltar
+  </a>
+  <a href="/" class="nav-logo">Casa<span>Certa</span></a>
+  <button class="btn-share" id="btnShare" title="Compartilhar">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    Compartilhar
+  </button>
+</nav>
+
+<!-- ══ GALLERY ══ -->
+<div class="gallery-section" id="gallerySection" style="display:none">
+  <div class="gallery-main" id="galleryMain" onclick="openLightbox(currentMedia)">
+    <div class="gallery-placeholder" id="galleryPlaceholder">🏠</div>
+  </div>
+  <div class="gallery-thumbs" id="galleryThumbs"></div>
+</div>
+
+<!-- ══ CONTENT ══ -->
+<div class="container">
+  <div id="pageContent" class="page-loader">
+    <div class="spinner"></div>
+    <span style="font-size:14px">Carregando imóvel…</span>
+  </div>
+</div>
+
+<!-- ══ MOBILE CTA BAR ══ -->
+<div class="mobile-bar" id="mobileBar">
+  <div style="flex:1">
+    <div class="mobile-bar-price-val" id="mobileBarPrice">—</div>
+    <div class="mobile-bar-price-label" id="mobileBarLabel">Valor</div>
+  </div>
+  <button class="mobile-bar-btn" id="mobileBarBtn">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    WhatsApp
+  </button>
+</div>
+
+<!-- ══ LIGHTBOX ══ -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <button class="lightbox-nav prev" onclick="lightboxNav(-1)">&#8249;</button>
+  <div id="lightboxMedia"></div>
+  <div class="lightbox-counter" id="lightboxCounter"></div>
+  <button class="lightbox-nav next" onclick="lightboxNav(1)">&#8250;</button>
+</div>
+
+<!-- ══ FOOTER ══ -->
+<footer class="page-footer">
+  <div class="footer-logo">Casa<span>Certa</span></div>
+  <p class="footer-copy">© <span id="footerYear"></span> Casa Certa Imóveis · Quixadá – CE</p>
+  <p class="dev-credit">Desenvolvido por <a href="#" target="_blank" rel="noopener">Albert Antunes</a></p>
+</footer>
+
+<script>
+/* ════ SVG ICONS ════ */
+const ICON_WPP = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>`;
+
+/* ════ STATE ════ */
+let imovel = null;
+let equipe = [];
+let mediaList = [];
+let currentMedia = 0;
+let wppDiogo = '5588981545786';
+let wppSalomao = '5588997137356';
+
+document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+/* ════ SCROLL PROGRESS ════ */
+window.addEventListener('scroll', () => {
+  const el = document.getElementById('progress');
+  if (!el) return;
+  const scrolled = window.scrollY;
+  const total = document.documentElement.scrollHeight - window.innerHeight;
+  el.style.width = total > 0 ? (scrolled / total * 100) + '%' : '0';
+}, { passive: true });
+
+/* ════ URL PARAMS ════ */
+const params = new URLSearchParams(window.location.search);
+const imovelId = params.get('id');
+
+/* ════ INIT ════ */
+async function init() {
+  if (!imovelId) { showError('Imóvel não encontrado.'); return; }
+  try {
+    const [cfgRes, imRes, eqRes] = await Promise.all([
+      fetch('/api/configuracoes').then(r => r.json()).catch(() => ({ data: [] })),
+      fetch(`/api/imoveis/${imovelId}`).then(r => r.json()),
+      fetch('/api/equipe').then(r => r.json()).catch(() => ({ data: [] }))
+    ]);
+
+    // Apply WPP config
+    const cfgMap = {};
+    (cfgRes.data || []).forEach(c => {
+      try { cfgMap[c.chave] = JSON.parse(c.valor); } catch { cfgMap[c.chave] = c.valor; }
+    });
+    if (cfgMap.whatsapp_diogo)   wppDiogo   = String(cfgMap.whatsapp_diogo).replace(/\D/g,'');
+    if (cfgMap.whatsapp_salomao) wppSalomao = String(cfgMap.whatsapp_salomao).replace(/\D/g,'');
+
+    imovel = imRes.data || imRes;
+    if (!imovel || !imovel.titulo) { showError('Imóvel não encontrado.'); return; }
+
+    equipe = (eqRes.data || []).filter(c => c.ativo !== false);
+
+    // Update page title and meta
+    document.title = `${imovel.titulo} · Casa Certa Imóveis`;
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      const loc = [imovel.bairro, imovel.cidade || 'Quixadá CE'].filter(Boolean).join(', ');
+      metaDesc.content = `${imovel.titulo} · ${loc} · Casa Certa Imóveis`;
+    }
+
+    buildMediaList();
+    renderGallery();
+    renderContent();
+    renderMobileBar();
+
+    // Share button
+    document.getElementById('btnShare').addEventListener('click', handleShare);
+
+  } catch(e) {
+    console.error(e);
+    showError('Erro ao carregar o imóvel. Tente novamente.');
+  }
+}
+
+/* ════ MEDIA ════ */
+function buildMediaList() {
+  mediaList = [];
+
+  // ── Tenta múltiplos nomes de campo que o backend pode retornar ──
+  // Supabase join pode retornar como: imagens_imoveis, imovel_imagens, imagens, fotos
+  let imgs = [];
+
+  if (Array.isArray(imovel.imagens_imoveis) && imovel.imagens_imoveis.length > 0) {
+    imgs = imovel.imagens_imoveis;
+  } else if (Array.isArray(imovel.imovel_imagens) && imovel.imovel_imagens.length > 0) {
+    imgs = imovel.imovel_imagens;
+  } else if (Array.isArray(imovel.imagens) && imovel.imagens.length > 0) {
+    imgs = imovel.imagens;
+  }
+
+  if (imgs.length) {
+    // Ordena: capa primeiro, depois por 'ordem'
+    const sorted = [...imgs].sort((a, b) => {
+      if (a.is_capa && !b.is_capa) return -1;
+      if (!a.is_capa && b.is_capa) return 1;
+      return (a.ordem ?? 0) - (b.ordem ?? 0);
+    });
+    sorted.forEach(img => {
+      // Aceita tanto objetos {url:'...'} quanto strings puras
+      const url = typeof img === 'string' ? img : (img.url || img.src || null);
+      if (url) mediaList.push({ type: 'img', url });
+    });
+  }
+
+  // ── Fallback: campo 'fotos' (array de strings ou objetos) ──
+  if (mediaList.length === 0 && Array.isArray(imovel.fotos) && imovel.fotos.length > 0) {
+    imovel.fotos.forEach(foto => {
+      const url = typeof foto === 'string' ? foto : (foto?.url || null);
+      if (url) mediaList.push({ type: 'img', url });
+    });
+  }
+
+  // ── Último recurso: capa_url ou foto_capa cadastrada diretamente ──
+  if (mediaList.length === 0) {
+    const capa = imovel.capa_url || imovel.foto_capa;
+    if (capa) mediaList.push({ type: 'img', url: capa });
+  }
+
+  // ── Vídeos (campo legado) ──
+  if (Array.isArray(imovel.videos)) {
+    imovel.videos.forEach(url => {
+      if (url) mediaList.push({ type: 'video', url });
+    });
+  }
+}
+
+/* ════ GALLERY ════ */
+function renderGallery() {
+  const section = document.getElementById('gallerySection');
+  section.style.display = '';
+
+  const tipo = imovel.tipo || 'venda';
+  const badgeClass = { venda:'badge-venda', aluguel:'badge-aluguel', terreno:'badge-terreno' }[tipo] || 'badge-venda';
+  const badgeLabel = tipo.charAt(0).toUpperCase() + tipo.slice(1);
+
+  if (!mediaList.length) {
+    document.getElementById('galleryMain').innerHTML = `
+      <div class="gallery-placeholder">${imovel.emoji || '🏠'}</div>
+      <span class="gallery-badge-tipo ${badgeClass}">${badgeLabel}</span>`;
+    document.getElementById('galleryThumbs').style.display = 'none';
+    return;
+  }
+
+  const mainEl = document.getElementById('galleryMain');
+  mainEl.innerHTML = `
+    <div id="mediaSlot"></div>
+    <span class="gallery-badge-tipo ${badgeClass}">${badgeLabel}</span>
+    ${mediaList.length > 1 ? `
+      <button class="gallery-nav prev" onclick="event.stopPropagation();prevMedia()">&#8249;</button>
+      <button class="gallery-nav next" onclick="event.stopPropagation();nextMedia()">&#8250;</button>
+      <span class="gallery-counter" id="galleryCounter">1/${mediaList.length}</span>` : ''}`;
+
+  // Thumbnails
+  const thumbsEl = document.getElementById('galleryThumbs');
+  if (mediaList.length <= 1) {
+    thumbsEl.style.display = 'none';
+  } else {
+    thumbsEl.innerHTML = mediaList.map((m, i) => `
+      <div class="thumb ${i===0?'active':''}" onclick="goToMedia(${i})">
+        ${m.type === 'video'
+          ? `<video src="${m.url}" muted preload="metadata"></video><div class="thumb-vid-icon">▶</div>`
+          : `<img src="${m.url}" alt="Foto ${i+1}" loading="lazy">`}
+      </div>`).join('');
+  }
+
+  showMedia(0, false);
+}
+
+function showMedia(idx, smooth = true) {
+  if (!mediaList.length) return;
+  currentMedia = idx;
+  const m = mediaList[idx];
+  const slot = document.getElementById('mediaSlot');
+  if (!slot) return;
+
+  if (!smooth) slot.style.opacity = '1';
+
+  if (m.type === 'video') {
+    slot.innerHTML = `<video src="${m.url}" controls muted playsinline class="gallery-main-media" preload="metadata"></video>`;
+  } else {
+    const img = new Image();
+    img.src = m.url;
+    img.alt = imovel.titulo;
+    img.className = 'gallery-main-media';
+    if (smooth) { img.style.opacity = '0'; img.onload = () => { img.style.opacity = '1'; }; }
+    slot.innerHTML = '';
+    slot.appendChild(img);
+  }
+
+  const counter = document.getElementById('galleryCounter');
+  if (counter) counter.textContent = `${idx+1}/${mediaList.length}`;
+
+  document.querySelectorAll('.thumb').forEach((el, i) => el.classList.toggle('active', i === idx));
+}
+
+function nextMedia() { goToMedia((currentMedia + 1) % mediaList.length); }
+function prevMedia() { goToMedia((currentMedia - 1 + mediaList.length) % mediaList.length); }
+function goToMedia(i) { showMedia(i, true); }
+
+// Swipe support
+let touchStartX = 0;
+document.getElementById('galleryMain').addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+document.getElementById('galleryMain').addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 50) { if (dx < 0) nextMedia(); else prevMedia(); }
+}, { passive: true });
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (document.getElementById('lightbox').classList.contains('open')) return;
+  if (e.key === 'ArrowLeft') prevMedia();
+  if (e.key === 'ArrowRight') nextMedia();
+});
+
+/* ════ LIGHTBOX ════ */
+function openLightbox(idx) {
+  if (!mediaList.length) return;
+  const lb = document.getElementById('lightbox');
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  showLightboxMedia(idx);
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function lightboxNav(dir) {
+  const next = (currentMedia + dir + mediaList.length) % mediaList.length;
+  currentMedia = next;
+  showLightboxMedia(next);
+}
+
+function showLightboxMedia(idx) {
+  const m = mediaList[idx];
+  const slot = document.getElementById('lightboxMedia');
+  if (m.type === 'video') {
+    slot.innerHTML = `<video src="${m.url}" controls autoplay muted playsinline style="max-width:100%;max-height:82vh;border-radius:10px;object-fit:contain"></video>`;
+  } else {
+    slot.innerHTML = `<img src="${m.url}" alt="${imovel.titulo}" style="max-width:100%;max-height:82vh;border-radius:10px;object-fit:contain;display:block">`;
+  }
+  document.getElementById('lightboxCounter').textContent = `${idx+1} / ${mediaList.length}`;
+}
+
+document.getElementById('lightbox').addEventListener('click', e => {
+  if (e.target === document.getElementById('lightbox')) closeLightbox();
+});
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lightbox').classList.contains('open')) return;
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowLeft') lightboxNav(-1);
+  if (e.key === 'ArrowRight') lightboxNav(1);
+});
+
+/* ════ MAIN CONTENT ════ */
+function renderContent() {
+  const id = imovel.id;
+  const tipo = imovel.tipo || 'venda';
+  const precoNum = imovel.preco ? Number(imovel.preco).toLocaleString('pt-BR') : null;
+  const precoStr = precoNum ? `R$ ${precoNum}${imovel.preco_periodo || ''}` : 'Consulte';
+  const locationParts = [imovel.bairro, imovel.cidade || 'Quixadá'].filter(Boolean);
+
+  const features = [
+    (imovel.quartos  > 0) ? { icon:'🛌', val:imovel.quartos,    label:imovel.quartos  === 1 ? 'Quarto'   : 'Quartos'   } : null,
+    (imovel.banheiros> 0) ? { icon:'🚿', val:imovel.banheiros,  label:imovel.banheiros=== 1 ? 'Banheiro' : 'Banheiros' } : null,
+    (imovel.vagas    > 0) ? { icon:'🚗', val:imovel.vagas,      label:imovel.vagas    === 1 ? 'Vaga'     : 'Vagas'     } : null,
+    (imovel.metragem > 0) ? { icon:'📐', val:`${imovel.metragem}m²`, label:'Área total' } : null,
+  ].filter(Boolean);
+
+  const wppMsg = encodeURIComponent(`Olá! Tenho interesse no imóvel:\n*${imovel.titulo}*\nPreço: ${precoStr}\nPoderia me passar mais informações?`);
+  const wppUrlDiogo   = `https://wa.me/${wppDiogo}?text=${wppMsg}`;
+  const wppUrlSalomao = `https://wa.me/${wppSalomao}?text=${wppMsg}`;
+
+  // Agents section
+  let agentsHtml = '';
+  if (equipe.length) {
+    agentsHtml = `
+      <div class="cta-agents">
+        <div class="cta-agents-label">Fale com um corretor</div>
+        ${equipe.map(c => {
+          const num = (c.whatsapp || wppDiogo).replace(/\D/g,'');
+          const wppC = `https://wa.me/${num}?text=${wppMsg}`;
+          const av = c.foto_url
+            ? `<img src="${c.foto_url}" alt="${c.nome}">`
+            : (c.avatar_iniciais || (c.nome||'CC').slice(0,2).toUpperCase());
+          return `
+            <div class="agent-row" onclick="window.open('${wppC}','_blank')">
+              <div class="agent-av" style="${c.avatar_cor ? `background:${c.avatar_cor}` : ''}">${av}</div>
+              <div>
+                <div class="agent-name">${c.nome}</div>
+                <div class="agent-creci">CRECI ${c.creci || '—'}</div>
+              </div>
+              <div class="agent-wpp-icon">${ICON_WPP}</div>
+            </div>`;
+        }).join('')}
+      </div>`;
+  }
+
+  const ctaHtml = `
+    <div class="cta-card">
+      <div class="cta-price">${precoStr}</div>
+      <div class="cta-price-label">${tipo === 'aluguel' ? 'Valor mensal' : 'Valor do imóvel'}</div>
+
+      <button class="btn-wpp" onclick="window.open('${wppUrlDiogo}','_blank')">
+        ${ICON_WPP} Falar com Diogo
+      </button>
+
+      <div class="cta-or">ou</div>
+
+      <button class="btn-wpp-outline" onclick="window.open('${wppUrlSalomao}','_blank')" style="margin-bottom: 12px;">
+        ${ICON_WPP} Falar com Salomão
+      </button>
+
+      <button class="btn-wpp-outline" onclick="window.location.href='/agendar.html?id=${id}'" style="border-color: var(--gold); color: var(--gold2); background: rgba(200,151,47,.04);">
+        📅 Agendar Visita Presencial
+      </button>
+
+      ${agentsHtml}
+    </div>`;
+
+  const badgeMap = {
+    venda:'badge-tipo-venda', aluguel:'badge-tipo-aluguel', terreno:'badge-tipo-terreno'
+  };
+
+  const contentHtml = `
+    <div class="content-wrap" id="pageContent">
+
+      <!-- COLUNA PRINCIPAL -->
+      <div>
+        <div class="prop-badges">
+          <span class="badge ${badgeMap[tipo] || 'badge-tipo-venda'}">${tipo.charAt(0).toUpperCase()+tipo.slice(1)}</span>
+          ${imovel.destaque ? `<span class="badge badge-destaque">⭐ Destaque</span>` : ''}
+          ${imovel.status === 'vendido' ? `<span class="badge badge-status-vendido">Vendido</span>` : ''}
+          ${imovel.status === 'inativo' ? `<span class="badge badge-status-inativo">Indisponível</span>` : ''}
+        </div>
+
+        <h1 class="prop-title">${imovel.titulo}</h1>
+
+        ${locationParts.length ? `
+          <div class="prop-location">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            ${locationParts.join(' · ')}
+          </div>` : ''}
+
+        ${features.length ? `
+          <div class="features-grid">
+            ${features.map(f => `
+              <div class="feat-card">
+                <div class="feat-icon">${f.icon}</div>
+                <div class="feat-val">${f.val}</div>
+                <div class="feat-label">${f.label}</div>
+              </div>`).join('')}
+          </div>` : ''}
+
+        ${imovel.descricao ? `
+          <div class="section-block">
+            <div class="section-label">Descrição</div>
+            <p class="desc-text">${escapeHtml(imovel.descricao)}</p>
+          </div>` : ''}
+
+        ${locationParts.length ? `
+          <div class="section-block">
+            <div class="section-label">Localização</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:15px;color:var(--text2)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              ${locationParts.join(', ')} – CE
+            </div>
+          </div>` : ''}
+
+        <!-- CTA visível só em mobile via este bloco  -->
+        <div class="section-block" style="display:none" id="mobileCta">
+         <div class="section-block" style="display:none" id="mobileCta">
+          <div class="section-label">Contato e Visitas</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <button class="btn-wpp" onclick="window.open('${wppUrlDiogo}','_blank')" style="width:100%">
+              ${ICON_WPP} Falar com Diogo
+            </button>
+            <button class="btn-wpp-outline" onclick="window.open('${wppUrlSalomao}','_blank')" style="width:100%">
+              ${ICON_WPP} Falar com Salomão
+            </button>
+            
+            <button class="btn-wpp-outline" onclick="window.location.href='/agendar.html?id=${id}'" style="width:100%; border-color: var(--gold); color: var(--gold2); background: rgba(200,151,47,.04);">
+              📅 Agendar Visita Presencial
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SIDEBAR CTA -->
+      <div>${ctaHtml}</div>
+
+    </div>`;
+
+  const oldContent = document.getElementById('pageContent');
+  oldContent.outerHTML = contentHtml;
+}
+
+function renderMobileBar() {
+  const tipo = imovel.tipo || 'venda';
+  const precoNum = imovel.preco ? Number(imovel.preco).toLocaleString('pt-BR') : null;
+  const precoStr = precoNum ? `R$ ${precoNum}${imovel.preco_periodo || ''}` : 'Consulte';
+  const wppMsg = encodeURIComponent(`Olá! Tenho interesse no imóvel: *${imovel.titulo}*. Poderia me informar mais?`);
+
+  document.getElementById('mobileBarPrice').textContent = precoStr;
+  document.getElementById('mobileBarLabel').textContent = tipo === 'aluguel' ? 'por mês' : 'valor do imóvel';
+  document.getElementById('mobileBarBtn').onclick = () => {
+    window.open(`https://wa.me/${wppDiogo}?text=${wppMsg}`, '_blank');
+  };
+}
+
+/* ════ SHARE ════ */
+async function handleShare() {
+  const shareData = {
+    title: imovel.titulo,
+    text: `Confira este imóvel na Casa Certa: ${imovel.titulo}`,
+    url: window.location.href
+  };
+  try {
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      await navigator.share(shareData);
+    } else {
+      await navigator.clipboard.writeText(window.location.href);
+      showToast('Link copiado!');
+    }
+  } catch {}
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border2);padding:10px 20px;border-radius:99px;font-size:13px;font-weight:600;color:var(--text);box-shadow:var(--sh);z-index:9999;animation:fadeIn .3s ease`;
+  t.textContent = msg;
+  if (!document.getElementById('_toastStyle')) {
+    const s = document.createElement('style');
+    s.id = '_toastStyle';
+    s.textContent = `@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}`;
+    document.head.appendChild(s);
+  }
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300); }, 2200);
+}
+
+/* ════ ERROR ════ */
+function showError(msg) {
+  document.getElementById('pageContent').innerHTML = `
+    <div style="text-align:center;padding:60px 20px;color:var(--text3)">
+      <div style="font-size:56px;margin-bottom:16px">🏠</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:24px;color:var(--text2);margin-bottom:10px">${msg}</h2>
+      <a href="/" style="color:var(--g400);font-weight:600;font-size:15px">← Voltar ao início</a>
+    </div>`;
+}
+
+/* ════ UTIL ════ */
+function escapeHtml(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ════ RUN ════ */
+init();
+</script>
+</body>
+</html>

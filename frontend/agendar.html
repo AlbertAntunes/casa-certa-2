@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agendar Visita · Casa Certa</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --g400: #22c55e;
+      --g500: #16a34a;
+      --g600: #15803d;
+      --gold: #c8972f;
+      --gold2: #e8b84b;
+      --bg: #070d09;
+      --bg2: #0b1510;
+      --bg3: #111f17;
+      --card: #111a14;
+      --border: rgba(34,197,94,0.1);
+      --border2: rgba(34,197,94,0.25);
+      --text: #f0fdf4;
+      --text2: #a7c3b0;
+      --text3: #5a7a65;
+      --r: 14px;
+      --sh: 0 8px 32px rgba(0,0,0,0.55);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .wrap { width: 100%; max-width: 620px; }
+
+    /* ---- Logo / Header ---- */
+    .top-brand {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .top-brand .logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      color: var(--g400);
+      letter-spacing: 0.5px;
+    }
+    .top-brand p {
+      font-size: 13px;
+      color: var(--text3);
+      margin-top: 4px;
+    }
+
+    /* ---- Card ---- */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border2);
+      border-radius: var(--r);
+      padding: 36px;
+      box-shadow: var(--sh);
+    }
+    .card h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      margin-bottom: 6px;
+    }
+    .card > p {
+      color: var(--text2);
+      font-size: 14px;
+      margin-bottom: 28px;
+    }
+
+    /* ---- Steps ---- */
+    .steps {
+      display: flex;
+      gap: 0;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+    }
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text3);
+      flex: 1;
+    }
+    .step.active { color: var(--g400); }
+    .step.done { color: var(--text2); }
+    .step-num {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      border: 1px solid currentColor;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600;
+      flex-shrink: 0;
+    }
+    .step.active .step-num { background: var(--g500); border-color: var(--g500); color: #fff; }
+    .step.done .step-num { background: var(--text3); border-color: var(--text3); color: #fff; }
+    .step-sep { flex: 0 0 20px; height: 1px; background: var(--border); align-self: center; }
+
+    /* ---- Seção ---- */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ---- Calendário ---- */
+    .cal-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .cal-nav h3 { font-size: 16px; font-weight: 600; }
+    .cal-nav button {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text2);
+      padding: 6px 12px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+      transition: border-color 0.2s;
+    }
+    .cal-nav button:hover { border-color: var(--g400); color: var(--text); }
+
+    .cal-legend {
+      display: flex; gap: 16px; margin-bottom: 14px; flex-wrap: wrap;
+    }
+    .cal-legend span {
+      display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2);
+    }
+    .leg-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+    }
+
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7,1fr);
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+    .cal-weekdays span {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text3);
+      padding: 4px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7,1fr);
+      gap: 4px;
+    }
+    .cal-day {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: default;
+      transition: all 0.15s;
+      position: relative;
+      border: 1px solid transparent;
+    }
+    .cal-day.empty { background: transparent; }
+    .cal-day.past { color: var(--text3); background: var(--bg2); opacity: 0.4; }
+    .cal-day.blocked {
+      background: rgba(220,38,38,0.12);
+      color: #f87171;
+      border-color: rgba(220,38,38,0.2);
+    }
+    .cal-day.blocked::after {
+      content: '✕';
+      font-size: 9px;
+      position: absolute;
+      bottom: 4px;
+      color: #f87171;
+      opacity: 0.7;
+    }
+    .cal-day.free {
+      background: rgba(34,197,94,0.08);
+      color: var(--text);
+      border-color: var(--border);
+      cursor: pointer;
+    }
+    .cal-day.free:hover {
+      background: rgba(34,197,94,0.18);
+      border-color: var(--g400);
+    }
+    .cal-day.selected {
+      background: var(--g500);
+      color: #fff;
+      border-color: var(--g400);
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.25);
+    }
+    .cal-day.today { border-color: var(--gold); }
+    .cal-day .vagas {
+      font-size: 9px;
+      color: var(--g400);
+      position: absolute;
+      bottom: 3px;
+    }
+    .cal-day.selected .vagas { color: rgba(255,255,255,0.7); }
+
+    /* ---- Formulário ---- */
+    .form-group { margin-bottom: 18px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text2);
+      margin-bottom: 7px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 11px 14px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--g400);
+      background: var(--bg3);
+    }
+    select option { background: #111; }
+
+    .selected-date-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(34,197,94,0.12);
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 13px;
+      color: var(--g400);
+      margin-bottom: 24px;
+    }
+    .selected-date-pill button {
+      background: none;
+      border: none;
+      color: var(--text3);
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      padding: 0;
+      margin-left: 4px;
+    }
+    .selected-date-pill button:hover { color: var(--text); }
+
+    /* ---- Botões ---- */
+    .btn {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      font-family: inherit;
+      margin-top: 8px;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: linear-gradient(135deg, var(--g500), var(--g600)); color: #fff; }
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--text2);
+      margin-top: 4px;
+    }
+
+    /* ---- Loading ---- */
+    .loading-overlay {
+      position: fixed; inset: 0;
+      background: rgba(7,13,9,0.85);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 16px;
+      z-index: 999;
+      display: none;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--border2);
+      border-top-color: var(--g400);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---- Sucesso ---- */
+    .success-card {
+      text-align: center;
+      padding: 40px 20px;
+      display: none;
+    }
+    .success-icon {
+      width: 72px; height: 72px;
+      background: rgba(34,197,94,0.12);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 36px;
+    }
+    .success-card h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    .success-card p { color: var(--text2); font-size: 14px; line-height: 1.6; }
+    .success-card .redirect-msg {
+      font-size: 13px;
+      color: var(--text3);
+      margin-top: 16px;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      color: var(--text3);
+      text-decoration: none;
+      font-size: 13px;
+    }
+    .back-link:hover { color: var(--text2); }
+
+    .cal-loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--text3);
+      font-size: 13px;
+    }
+
+    @media (max-width: 500px) {
+      .card { padding: 24px 18px; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="top-brand">
+    <div class="logo-text">Casa Certa</div>
+    <p>Plataforma de Imóveis</p>
+  </div>
+
+  <div class="card" id="mainCard">
+    <h1>Agendar uma Visita</h1>
+    <p>Escolha um dia disponível no calendário e preencha seus dados para confirmar.</p>
+
+    <!-- Steps -->
+    <div class="steps">
+      <div class="step active" id="step1Ind">
+        <div class="step-num">1</div>
+        <span>Escolher data</span>
+      </div>
+      <div class="step-sep"></div>
+      <div class="step" id="step2Ind">
+        <div class="step-num">2</div>
+        <span>Seus dados</span>
+      </div>
+      <div class="step-sep"></div>
+      <div class="step" id="step3Ind">
+        <div class="step-num">3</div>
+        <span>Confirmação</span>
+      </div>
+    </div>
+
+    <!-- Seção 1: Calendário -->
+    <div class="section active" id="sec1">
+      <div class="cal-nav">
+        <button onclick="prevMonth()">&#8592; Anterior</button>
+        <h3 id="calTitle">Carregando...</h3>
+        <button onclick="nextMonth()">Próximo &#8594;</button>
+      </div>
+
+      <div class="cal-legend">
+        <span><div class="leg-dot" style="background:rgba(34,197,94,0.4)"></div> Disponível</span>
+        <span><div class="leg-dot" style="background:rgba(220,38,38,0.4)"></div> Indisponível</span>
+        <span><div class="leg-dot" style="border:1px solid #c8972f; background:transparent"></div> Hoje</span>
+      </div>
+
+      <div class="cal-weekdays">
+        <span>Dom</span><span>Seg</span><span>Ter</span>
+        <span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+      </div>
+      <div class="cal-grid" id="calGrid">
+        <div class="cal-loading">Carregando disponibilidade...</div>
+      </div>
+      <p style="font-size:12px; color:var(--text3); margin-top:12px;">
+        Clique em um dia disponível para continuar.
+      </p>
+    </div>
+
+    <!-- Seção 2: Formulário -->
+    <div class="section" id="sec2">
+      <div class="selected-date-pill" id="datePill">
+        📅 <span id="dateLabel"></span>
+        <button onclick="backToCalendar()" title="Mudar data">✕</button>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nome">Nome Completo</label>
+          <input type="text" id="nome" required placeholder="Ex: Ana Lima">
+        </div>
+        <div class="form-group">
+          <label for="whatsapp">WhatsApp</label>
+          <input type="tel" id="whatsapp" required placeholder="(88) 99999-0000">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">E-mail (opcional)</label>
+        <input type="email" id="email" placeholder="ana@email.com">
+      </div>
+
+      <div class="form-group">
+        <label for="periodo">Período de Preferência</label>
+        <select id="periodo" required>
+          <option value="manha">Manhã (08h às 12h)</option>
+          <option value="tarde">Tarde (14h às 18h)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="obs">Observações (opcional)</label>
+        <textarea id="obs" rows="3" placeholder="Ex: quero ver a garagem, tenho crianças..."></textarea>
+      </div>
+
+      <button class="btn btn-primary" onclick="submitAgendamento()">
+        Confirmar Agendamento
+      </button>
+      <button class="btn btn-secondary" onclick="backToCalendar()">
+        ← Voltar ao calendário
+      </button>
+    </div>
+
+    <!-- Seção 3: Sucesso -->
+    <div class="section" id="sec3">
+      <div class="success-card" id="successCard">
+        <div class="success-icon">✅</div>
+        <h2>Agendamento Enviado!</h2>
+        <p>
+          Sua visita para o dia <strong id="confirmDate"></strong>
+          no período da <strong id="confirmPeriodo"></strong> foi solicitada com sucesso.
+          <br><br>
+          Nossa equipe irá confirmar em breve pelo WhatsApp informado.
+        </p>
+        <p class="redirect-msg" id="redirectMsg">Redirecionando em <span id="countdown">5</span>s...</p>
+      </div>
+    </div>
+  </div>
+
+  <a href="javascript:history.back()" class="back-link">← Voltar para o imóvel</a>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <span style="color:var(--text2);font-size:14px">Aguarde...</span>
+</div>
+
+<script>
+  // ============================================================
+  // CONFIGURAÇÃO — ALTERE AQUI
+  // ============================================================
+  const SUPABASE_URL    = 'https://uuihfrocfeymztydrnsn.supabase.co';
+  const SUPABASE_ANON   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1aWhmcm9jZmV5bXp0eWRybnNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzkyNDYsImV4cCI6MjA5NDcxNTI0Nn0.mtSRERwAd7pzlxEeaF-7WDJ3xPFWi7SUz22PVd-a6YQ';
+  const WHATSAPP_ADMINS = ['5588981488535']; // DDI+DDD+número, sem espaços
+  // ============================================================
+
+  const urlParams  = new URLSearchParams(window.location.search);
+  const imovelId   = urlParams.get('id');
+  const returnUrl  = urlParams.get('return') || document.referrer || '/';
+
+  let currentYear, currentMonth, diasBloqueados = [], diasOcupados = {};
+  let selectedDate = null;
+
+  // ---- INIT ----
+  const today = new Date();
+  currentYear  = today.getFullYear();
+  currentMonth = today.getMonth();
+
+  init();
+
+  async function init() {
+    await loadCalendar();
+  }
+
+  // ---- API helpers ----
+  async function sbFetch(path, options = {}) {
+  console.log("DEBUG - URL:", SUPABASE_URL);
+  console.log("DEBUG - API KEY:", SUPABASE_ANON); // Se isto imprimir 'undefined', a chave não está carregada!
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+      headers: {
+        'apikey': SUPABASE_ANON,
+        'Authorization': `Bearer ${SUPABASE_ANON}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
+        ...options.headers
+      },
+      ...options
+    });
+    if (!res.ok) {
+  const err = await res.text();
+  console.error(err);
+  throw new Error(`Supabase error: ${res.status} - ${err}`);
+}
+  }
+
+  // ---- Calendário ----
+  async function loadCalendar() {
+    const grid = document.getElementById('calGrid');
+    grid.innerHTML = '<div class="cal-loading">Carregando disponibilidade...</div>';
+
+    // Busca dias bloqueados pelo admin neste mês
+    const mesStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
+    try {
+      const bloqueios = await sbFetch(
+        `disponibilidade?data=gte.${mesStr}-01&data=lte.${mesStr}-31&select=data,bloqueado`
+      );
+      diasBloqueados = bloqueios.filter(d => d.bloqueado).map(d => d.data);
+
+      // Busca agendamentos confirmados neste mês (para contar vagas)
+      const ags = await sbFetch(
+        `agendamentos?data=gte.${mesStr}-01&data=lte.${mesStr}-31&status=neq.cancelado&select=data`
+      );
+      diasOcupados = {};
+      ags.forEach(a => {
+        diasOcupados[a.data] = (diasOcupados[a.data] || 0) + 1;
+      });
+    } catch(e) {
+      // Em caso de erro de conexão, mostra calendário sem bloqueios
+      diasBloqueados = [];
+      diasOcupados = {};
+    }
+
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                   'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    document.getElementById('calTitle').textContent = `${meses[currentMonth]} ${currentYear}`;
+
+    const grid  = document.getElementById('calGrid');
+    const first = new Date(currentYear, currentMonth, 1).getDay();
+    const total = new Date(currentYear, currentMonth+1, 0).getDate();
+    const todayStr = toDateStr(today);
+
+    let html = '';
+
+    for (let i = 0; i < first; i++) {
+      html += `<div class="cal-day empty"></div>`;
+    }
+
+    for (let d = 1; d <= total; d++) {
+      const dt  = new Date(currentYear, currentMonth, d);
+      const str = toDateStr(dt);
+      const isPast = dt < new Date(todayStr);
+      const isBlocked = diasBloqueados.includes(str);
+      const isSunday = dt.getDay() === 0;
+      const ocupados = diasOcupados[str] || 0;
+      const MAX_VAGAS = 4;
+      const semVaga = ocupados >= MAX_VAGAS;
+      const isSelected = selectedDate === str;
+      const isToday = str === todayStr;
+
+      let cls = 'cal-day';
+      let extra = '';
+
+      if (isSelected) {
+        cls += ' selected';
+      } else if (isPast || isSunday || isBlocked || semVaga) {
+        cls += isPast || isSunday ? ' past' : ' blocked';
+      } else {
+        cls += ' free';
+        const vagas = MAX_VAGAS - ocupados;
+        if (vagas <= 2) extra = `<span class="vagas">${vagas} vaga${vagas>1?'s':''}</span>`;
+      }
+
+      if (isToday && !isSelected) cls += ' today';
+
+      const click = (!isPast && !isSunday && !isBlocked && !semVaga)
+        ? `onclick="selectDay('${str}')"` : '';
+
+      html += `<div class="${cls}" ${click}>${d}${extra}</div>`;
+    }
+
+    grid.innerHTML = html;
+  }
+
+  function selectDay(str) {
+    selectedDate = str;
+    renderCalendar();
+    goToStep(2);
+
+    const [y,m,d] = str.split('-');
+    const dt = new Date(Number(y), Number(m)-1, Number(d));
+    const opts = { weekday:'long', day:'numeric', month:'long', year:'numeric' };
+    document.getElementById('dateLabel').textContent =
+      dt.toLocaleDateString('pt-BR', opts);
+  }
+
+  function backToCalendar() {
+    goToStep(1);
+  }
+
+  function prevMonth() {
+    if (currentMonth === 0) { currentMonth = 11; currentYear--; }
+    else currentMonth--;
+    loadCalendar();
+  }
+
+  function nextMonth() {
+    if (currentMonth === 11) { currentMonth = 0; currentYear++; }
+    else currentMonth++;
+    loadCalendar();
+  }
+
+  // ---- Steps ----
+  function goToStep(n) {
+    ['sec1','sec2','sec3'].forEach((id,i) => {
+      document.getElementById(id).classList.toggle('active', i+1 === n);
+    });
+    ['step1Ind','step2Ind','step3Ind'].forEach((id,i) => {
+      const el = document.getElementById(id);
+      el.classList.remove('active','done');
+      if (i+1 === n) el.classList.add('active');
+      else if (i+1 < n) el.classList.add('done');
+    });
+    if (n === 3) {
+      document.getElementById('successCard').style.display = 'block';
+    }
+  }
+
+  // ---- Submit ----
+  async function submitAgendamento() {
+    const nome     = document.getElementById('nome').value.trim();
+    const whatsapp = document.getElementById('whatsapp').value.trim();
+    const email    = document.getElementById('email').value.trim();
+    const periodo  = document.getElementById('periodo').value;
+    const obs      = document.getElementById('obs').value.trim();
+
+    if (!nome || !whatsapp) {
+      alert('Por favor, preencha Nome e WhatsApp.');
+      return;
+    }
+    if (!selectedDate) {
+      alert('Selecione uma data no calendário.');
+      return;
+    }
+
+    showLoading(true);
+
+    try {
+      const payload = {
+        imovel_id: imovelId,
+        nome,
+        whatsapp,
+        email: email || null,
+        data: selectedDate,
+        periodo,
+        observacao: obs || null,
+        status: 'pendente',
+        created_at: new Date().toISOString()
+      };
+
+      await sbFetch('agendamentos', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+
+      // Notificação WhatsApp para admin (via link de disparo — adapte para sua API)
+      notificarAdmin(payload);
+
+      showLoading(false);
+      goToStep(3);
+
+      const periodoLabel = periodo === 'manha' ? 'manhã' : 'tarde';
+      document.getElementById('confirmDate').textContent = document.getElementById('dateLabel').textContent;
+      document.getElementById('confirmPeriodo').textContent = periodoLabel;
+
+      // Countdown e redirect
+      let s = 5;
+      const timer = setInterval(() => {
+        s--;
+        document.getElementById('countdown').textContent = s;
+        if (s <= 0) {
+          clearInterval(timer);
+          window.location.href = returnUrl;
+        }
+      }, 1000);
+
+    } catch(err) {
+      showLoading(false);
+      alert('Erro ao enviar agendamento. Tente novamente.\n' + err.message);
+    }
+  }
+
+ function notificarAdmin(dados) {
+  const periodoLabel = dados.periodo === 'manha' ? 'Manhã' : 'Tarde';
+  const msg = encodeURIComponent(
+    `🏠 *Novo Agendamento - Casa Certa*\n\n` +
+    `*Cliente:* ${dados.nome}\n` +
+    `*WhatsApp:* ${dados.whatsapp}\n` +
+    `*Email:* ${dados.email || '-'}\n` +
+    `*Data:* ${dados.data}\n` +
+    `*Período:* ${periodoLabel}\n` +
+    `*Imóvel ID:* ${dados.imovel_id || '-'}\n` +
+    `*Obs:* ${dados.observacao || '-'}`
+  );
+
+  // Percorre o array e abre o WhatsApp para cada número
+ function notificarAdmin(dados) {
+  // ... (seu código de montagem da mensagem) ...
+
+  // O erro acontece aqui. Certifique-se de que está usando o nome no plural:
+  WHATSAPP_ADMINS.forEach(numero => {
+    const link = document.createElement('a');
+    link.href = `https://wa.me/${numero}?text=${msg}`;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.click();
+  });
+}
+    // Abre em background (não redireciona o cliente)
+    const link = document.createElement('a');
+    link.href = `https://wa.me/${WHATSAPP_ADMINS}?text=${msg}`;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.click();
+  }
+
+  // ---- Utils ----
+  function toDateStr(dt) {
+    return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  }
+
+  function showLoading(v) {
+    document.getElementById('loadingOverlay').style.display = v ? 'flex' : 'none';
+  }
+</script>
+</body>
+</html>

@@ -1,28 +1,29 @@
 ﻿<!DOCTYPE html>
 <html lang="pt-BR" data-theme="dark">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Equipe Â· Casa Certa Admin</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/admin/admin.css">
-<style>
-.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
-.team-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r2);padding:24px;transition:var(--tr)}
-.team-card:hover{border-color:var(--border2)}
-.team-avatar-wrap{display:flex;align-items:center;gap:16px;margin-bottom:16px}
-.team-avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;flex-shrink:0}
-.team-avatar-placeholder{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;flex-shrink:0}
-.team-name{font-family:"Playfair Display",serif;font-size:18px;font-weight:700}
-.team-cargo{font-size:13px;color:var(--text3);margin-top:2px}
-.team-creci{display:inline-block;background:rgba(34,197,94,.1);color:var(--g400);border-radius:99px;font-size:11px;font-weight:700;padding:3px 10px;margin-top:6px}
-.team-stats{display:flex;gap:16px;padding:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:14px 0}
-.team-stat{text-align:center;flex:1}
-.team-stat-val{font-family:"Playfair Display",serif;font-size:20px;font-weight:800;color:var(--g400)}
-.team-stat-label{font-size:11px;color:var(--text3);margin-top:2px}
-.team-contacts{display:flex;gap:8px;font-size:12px;color:var(--text3);margin-bottom:14px;flex-wrap:wrap}
-.team-contacts span{display:flex;align-items:center;gap:4px}
-.team-actions{display:flex;gap:8px}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Equipe · Casa Certa Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin/admin.css">
+  <style>
+    .team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+    .team-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r2);padding:24px;transition:var(--tr)}
+    .team-card:hover{border-color:var(--border2)}
+    .team-avatar-wrap{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+    .team-avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;flex-shrink:0}
+    .team-avatar-placeholder{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;flex-shrink:0}
+    .team-name{font-family:"Playfair Display",serif;font-size:18px;font-weight:700}
+    .team-cargo{font-size:13px;color:var(--text3);margin-top:2px}
+    .team-creci{display:inline-block;background:rgba(34,197,94,.1);color:var(--g400);border-radius:99px;font-size:11px;font-weight:700;padding:3px 10px;margin-top:6px}
+    .team-stats{display:flex;gap:16px;padding:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:14px 0}
+    .team-stat{text-align:center;flex:1}
+    .team-stat-val{font-family:"Playfair Display",serif;font-size:20px;font-weight:800;color:var(--g400)}
+    .team-stat-label{font-size:11px;color:var(--text3);margin-top:2px}
+    .team-contacts{display:flex;gap:8px;font-size:12px;color:var(--text3);margin-bottom:14px;flex-wrap:wrap}
+    .team-contacts span{display:flex;align-items:center;gap:4px}
+    .team-actions{display:flex;gap:8px}
+  </style>
 </head>
 <body>
 <div class="admin-layout" id="layout"></div>
@@ -53,7 +54,7 @@
           </div>
           <div class="field">
             <label>Cargo</label>
-            <input type="text" id="eqCargo" placeholder="Corretor de Imoveis" value="Corretor de Imoveis">
+            <input type="text" id="eqCargo" placeholder="Corretor de Imóveis" value="Corretor de Imóveis">
           </div>
           <div class="field">
             <label>CRECI</label>
@@ -72,7 +73,7 @@
             <input type="text" id="eqInstagram" placeholder="https://instagram.com/...">
           </div>
           <div class="field">
-            <label>Anos de experiencia</label>
+            <label>Anos de experiência</label>
             <input type="number" id="eqAnos" min="0">
           </div>
           <div class="field">
@@ -80,7 +81,7 @@
             <input type="number" id="eqClientes" min="0">
           </div>
           <div class="field">
-            <label>Avaliacao (0-5)</label>
+            <label>Avaliação (0-5)</label>
             <input type="number" id="eqAvaliacao" min="0" max="5" step="0.1" value="4.9">
           </div>
           <div class="field">
@@ -89,7 +90,7 @@
           </div>
           <div class="field" style="grid-column:1/-1">
             <label>Bio</label>
-            <textarea id="eqBio" placeholder="Apresentacao do corretor..."></textarea>
+            <textarea id="eqBio" placeholder="Apresentação do corretor..."></textarea>
           </div>
           <div class="field" style="display:flex;align-items:center;gap:10px">
             <label class="toggle"><input type="checkbox" id="eqAtivo" checked><span class="toggle-slider"></span></label>
@@ -112,12 +113,13 @@ let editingId = null;
 let novaFotoUrl = null;
 
 (async () => {
+  // Executa a proteção de rota e renderiza a casca do painel
   const user = await authGuard();
   if (!user) return;
 
-  document.getElementById('layout').innerHTML = renderSidebar() + `
+  document.getElementById('layout').innerHTML = renderSidebar('equipe.html') + `
   <div class="main">
-    ${renderTopbar('Equipe', `<button class="btn btn-primary" id="btnNovoCorretor">ï¼‹ Novo corretor</button>`)}
+    ${renderTopbar('Equipe', `<button class="btn btn-primary" id="btnNovoCorretor">＋ Novo corretor</button>`)}
     <div class="page-content">
       <div class="team-grid" id="teamGrid">
         <div style="text-align:center;padding:40px"><div class="spinner"></div></div>
@@ -125,57 +127,64 @@ let novaFotoUrl = null;
     </div>
   </div>`;
 
-  initSidebar('equipe');
+  initSidebar('equipe.html');
   populateUser(user);
   initModalClose();
 
+  // Event Listeners básicos
   document.getElementById('btnNovoCorretor').addEventListener('click', () => openForm(null));
   document.getElementById('btnSalvarEq').addEventListener('click', salvar);
-document.getElementById('eqFotoInput').addEventListener('change', async (e) => {
+  
+  document.getElementById('eqFotoInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  const file = e.target.files[0];
+    // Preview local da imagem escolhida
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const prev = document.getElementById('eqFotoPreview');
+      prev.src = ev.target.result;
+      prev.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
 
-  if (!file) return;
-
-  // Preview
-  const reader = new FileReader();
-
-  reader.onload = ev => {
-
-    const prev = document.getElementById('eqFotoPreview');
-
-    prev.src = ev.target.result;
-
-    prev.style.display = 'block';
-  };
-
-  reader.readAsDataURL(file);
-
-  // Upload
-  try {
-
-    let res;
-
+    // Upload automático para a API
     try {
-
-      res = await apiUpload(file, 'equipe');
-
-    } catch {
-
-      res = await apiUpload(file, 'imoveis');
+      let res;
+      try {
+        res = await apiUpload(file, 'equipe');
+      } catch {
+        res = await apiUpload(file, 'imoveis');
+      }
+      novaFotoUrl = res.url || res.data?.url; // Aceita estruturas comuns de retorno
+      toast('Foto enviada!');
+    } catch (e) {
+      toast('Erro no upload da foto', 'error');
     }
+  });
 
-    novaFotoUrl = res.url;
-
-    toast('Foto enviada!');
-
-  } catch (e) {
-
-    toast('Erro no upload da foto', 'error');
-  }
-
-});
+  // Dispara a busca inicial dos dados
+  await carregar();
 })();
+
+// Busca os corretores salvos no Banco através da API
+async function carregar() {
+  try {
+    const res = await apiFetch('/equipe');
+    // Trata caso a API retorne os dados envelopados em um objeto { data: [...] }
+    equipe = Array.isArray(res) ? res : (res.data || []);
+    renderGrid();
+  } catch (e) {
+    console.error(e);
+    toast('Erro ao carregar equipe', 'error');
+    document.getElementById('teamGrid').innerHTML = `
+      <div style="grid-column:1/-1; text-align:center; color:var(--text3); padding:40px;">
+        Não foi possível carregar os dados da equipe.
+      </div>`;
+  }
+}
+
+// Renderiza os cards na tela dinamicamente
 function renderGrid() {
   const grid = document.getElementById('teamGrid');
   if (!equipe.length) {
@@ -187,17 +196,17 @@ function renderGrid() {
       <div class="team-avatar-wrap">
         ${c.foto_url
           ? `<img class="team-avatar" src="${c.foto_url}" alt="${c.nome}">`
-          : `<div class="team-avatar-placeholder" style="background:${c.avatar_cor||'linear-gradient(135deg,#22C55E,#065f46)'}">${c.avatar_iniciais||c.nome?.slice(0,2)||'CC'}</div>`}
+          : `<div class="team-avatar-placeholder" style="background:${c.avatar_cor||'linear-gradient(135deg,#22C55E,#065f46)'}">${c.avatar_iniciais||c.nome?.slice(0,2).toUpperCase()||'CC'}</div>`}
         <div>
           <div class="team-name">${c.nome}</div>
-          <div class="team-cargo">${c.cargo||'Corretor'}</div>
+          <div class="team-cargo">${c.cargo||'Corretor de Imóveis'}</div>
           ${c.creci ? `<span class="team-creci">CRECI ${c.creci}</span>` : ''}
         </div>
       </div>
       <div class="team-stats">
         <div class="team-stat"><div class="team-stat-val">${c.anos_experiencia||0}+</div><div class="team-stat-label">Anos</div></div>
         <div class="team-stat"><div class="team-stat-val">${c.clientes_atendidos||0}+</div><div class="team-stat-label">Clientes</div></div>
-        <div class="team-stat"><div class="team-stat-val">${c.avaliacao||4.9}★</div><div class="team-stat-label">Avaliacao</div></div>
+        <div class="team-stat"><div class="team-stat-val">${c.avaliacao||4.9}★</div><div class="team-stat-label">Avaliação</div></div>
       </div>
       <div class="team-contacts">
         ${c.whatsapp ? `<span>📱 ${c.whatsapp}</span>` : ''}
@@ -205,18 +214,20 @@ function renderGrid() {
       </div>
       <div class="team-actions">
         <button class="btn btn-ghost btn-sm" style="flex:1" onclick="openForm('${c.id}')">✏️ Editar</button>
+        <button class="btn btn-ghost btn-sm" style="color:#ef4444; border-color:rgba(239,68,68,0.2)" onclick="deletar('${c.id}')">🗑️</button>
         ${!c.ativo ? `<span class="badge badge-inativo">Inativo</span>` : ''}
       </div>
     </div>`).join('');
 }
 
+// Abre o Modal para Criação ou Edição
 function openForm(id) {
   editingId = id;
   novaFotoUrl = null;
   document.getElementById('formEquipe').reset();
   document.getElementById('eqFotoPreview').style.display = 'none';
   document.getElementById('modalTitleEq').textContent = id ? 'Editar Corretor' : 'Novo Corretor';
-  document.getElementById('eqCargo').value = 'Corretor de Imoveis';
+  document.getElementById('eqCargo').value = 'Corretor de Imóveis';
   document.getElementById('eqAvaliacao').value = '4.9';
   document.getElementById('eqAtivo').checked = true;
 
@@ -225,7 +236,7 @@ function openForm(id) {
     if (!c) return;
     document.getElementById('eqId').value = c.id;
     document.getElementById('eqNome').value = c.nome || '';
-    document.getElementById('eqCargo').value = c.cargo || 'Corretor de Imoveis';
+    document.getElementById('eqCargo').value = c.cargo || 'Corretor de Imóveis';
     document.getElementById('eqCreci').value = c.creci || '';
     document.getElementById('eqIniciais').value = c.avatar_iniciais || '';
     document.getElementById('eqWhatsapp').value = c.whatsapp || '';
@@ -236,29 +247,45 @@ function openForm(id) {
     document.getElementById('eqCor').value = c.avatar_cor || '';
     document.getElementById('eqBio').value = c.bio || '';
     document.getElementById('eqAtivo').checked = c.ativo !== false;
-    if (c.foto_url) { const p = document.getElementById('eqFotoPreview'); p.src = c.foto_url; p.style.display = 'block'; novaFotoUrl = c.foto_url; }
+    
+    if (c.foto_url) { 
+      const p = document.getElementById('eqFotoPreview'); 
+      p.src = c.foto_url; 
+      p.style.display = 'block'; 
+      novaFotoUrl = c.foto_url; 
+    }
   }
   openModal('modalEquipe');
 }
 
+// Salva os dados (POST ou PUT) na API
 async function salvar() {
+  const nomeInput = document.getElementById('eqNome').value.trim();
+  if(!nomeInput) {
+    toast('O nome do corretor é obrigatório', 'warn');
+    return;
+  }
+
   const btn = document.getElementById('btnSalvarEq');
-  btn.disabled = true; btn.textContent = 'Salvando...';
+  btn.disabled = true; 
+  btn.textContent = 'Salvando...';
+
   const payload = {
-    nome: document.getElementById('eqNome').value,
+    nome: nomeInput,
     cargo: document.getElementById('eqCargo').value,
     creci: document.getElementById('eqCreci').value,
-    avatar_iniciais: document.getElementById('eqIniciais').value || document.getElementById('eqNome').value.slice(0,2).toUpperCase(),
+    avatar_iniciais: document.getElementById('eqIniciais').value || nomeInput.slice(0,2).toUpperCase(),
     whatsapp: document.getElementById('eqWhatsapp').value,
     instagram: document.getElementById('eqInstagram').value,
-    anos_experiencia: Number(document.getElementById('eqAnos').value)||0,
-    clientes_atendidos: Number(document.getElementById('eqClientes').value)||0,
-    avaliacao: Number(document.getElementById('eqAvaliacao').value)||4.9,
+    anos_experiencia: Number(document.getElementById('eqAnos').value) || 0,
+    clientes_atendidos: Number(document.getElementById('eqClientes').value) || 0,
+    avaliacao: Number(document.getElementById('eqAvaliacao').value) || 4.9,
     avatar_cor: document.getElementById('eqCor').value || 'linear-gradient(135deg,#22C55E,#065f46)',
     bio: document.getElementById('eqBio').value,
     ativo: document.getElementById('eqAtivo').checked,
     foto_url: novaFotoUrl
   };
+
   try {
     if (editingId) {
       await apiFetch(`/equipe/${editingId}`, { method:'PUT', body:JSON.stringify(payload) });
@@ -269,8 +296,26 @@ async function salvar() {
     }
     closeModal('modalEquipe');
     await carregar();
-  } catch(e) { toast(e.message, 'error'); }
-  finally { btn.disabled = false; btn.textContent = 'Salvar corretor'; }
+  } catch(e) { 
+    toast(e.message, 'error'); 
+  } finally { 
+    btn.disabled = false; 
+    btn.textContent = 'Salvar corretor'; 
+  }
+}
+
+// Remove um corretor usando a função de confirmação nativa do admin.js
+async function deletar(id) {
+  const sim = await adminConfirm('Tem certeza que deseja remover este corretor da equipe?');
+  if (!sim) return;
+
+  try {
+    await apiFetch(`/equipe/${id}`, { method: 'DELETE' });
+    toast('Corretor removido com sucesso!');
+    await carregar();
+  } catch (e) {
+    toast(e.message, 'error');
+  }
 }
 </script>
 </body>

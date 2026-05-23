@@ -613,14 +613,20 @@ function renderTable() {
     return;
   }
 
-  tbody.innerHTML = list.map(im => `
+  tbody.innerHTML = list.map(im => {
+    // CORREÇÃO CIRÚRGICA: Se não houver capa_url, pega a primeira foto do array 'fotos'
+    let imagemExibida = im.capa_url;
+    if (!imagemExibida && Array.isArray(im.fotos) && im.fotos.length > 0) {
+      imagemExibida = im.fotos[0];
+    }
 
+    return `
     <tr data-id="${im.id}">
 
       <td>
 
         ${
-          im.capa_url
+          imagemExibida
           ? `
             <img
               class="imovel-img"
@@ -698,8 +704,8 @@ function renderTable() {
       </td>
 
     </tr>
-
-  `).join('');
+    `;
+  }).join('');
 }
 
 /* =========================
@@ -776,103 +782,43 @@ function openForm(id = null) {
 /* =========================
    SAVE
 ========================= */
-
 async function salvar() {
-
-  const btn =
-    document.getElementById('btnSalvar');
-
+  const btn = document.getElementById('btnSalvar');
   btn.disabled = true;
-
   btn.textContent = 'Salvando...';
 
   try {
+    // TRATAMENTO SEGURO DE FOTOS: 
+    // Captura a URL correta se 'p' for uma string direta, se for um objeto com '.url' ou se vier de um upload do Supabase
+    const listaDeUrls = uploadedPhotos.map(p => {
+      if (!p) return null;
+      if (typeof p === 'string') return p;
+      if (p.url) return p.url;
+      if (p.data && p.data.url) return p.data.url;
+      return null;
+    }).filter(Boolean); // Remove qualquer valor nulo ou inválido que possa quebrar o banco
 
     const payload = {
+      titulo: document.getElementById('fTitulo').value.trim(),
+      tipo: document.getElementById('fTipo').value,
+      status: document.getElementById('fStatus').value,
+      preco: Number(document.getElementById('fPreco').value) || null,
+      preco_periodo: document.getElementById('fPrecoPeriodo').value,
+      bairro: document.getElementById('fBairro').value,
+      cidade: document.getElementById('fCidade').value,
+      quartos: Number(document.getElementById('fQuartos').value) || null,
+      banheiros: Number(document.getElementById('fBanheiros').value) || null,
+      vagas: Number(document.getElementById('fVagas').value) || null,
+      metragem: Number(document.getElementById('fMetragem').value) || null,
+      descricao: document.getElementById('fDescricao').value,
+      emoji: document.getElementById('fEmoji').value || '🏠',
+      destaque: document.getElementById('fDestaque').checked,
 
-      titulo:
-        document
-          .getElementById('fTitulo')
-          .value
-          .trim(),
+      // 1. Envia a lista tratada e limpa para o array de fotos do banco
+      fotos: listaDeUrls,
 
-      tipo:
-        document
-          .getElementById('fTipo')
-          .value,
-
-      status:
-        document
-          .getElementById('fStatus')
-          .value,
-
-      preco:
-        Number(
-          document
-            .getElementById('fPreco')
-            .value
-        ) || null,
-
-      preco_periodo:
-        document
-          .getElementById('fPrecoPeriodo')
-          .value,
-
-      bairro:
-        document
-          .getElementById('fBairro')
-          .value,
-
-      cidade:
-        document
-          .getElementById('fCidade')
-          .value,
-
-      quartos:
-        Number(
-          document
-            .getElementById('fQuartos')
-            .value
-        ) || null,
-
-      banheiros:
-        Number(
-          document
-            .getElementById('fBanheiros')
-            .value
-        ) || null,
-
-      vagas:
-        Number(
-          document
-            .getElementById('fVagas')
-            .value
-        ) || null,
-
-      metragem:
-        Number(
-          document
-            .getElementById('fMetragem')
-            .value
-        ) || null,
-
-      descricao:
-        document
-          .getElementById('fDescricao')
-          .value,
-
-      emoji:
-        document
-          .getElementById('fEmoji')
-          .value || '🏠',
-
-      destaque:
-        document
-          .getElementById('fDestaque')
-          .checked,
-
-      fotos:
-        uploadedPhotos.map(p => p.url)
+      // 2. Garante explicitamente a imagem principal para o site principal (Home)
+      capa_url: listaDeUrls.length > 0 ? listaDeUrls[0] : null
     };
 
     if (!payload.titulo) {
@@ -884,49 +830,29 @@ async function salvar() {
     }
 
     if (editingId) {
-
-      await apiFetch(
-        `/imoveis/${editingId}`,
-        {
-          method: 'PUT',
-          body: JSON.stringify(payload)
-        }
-      );
-
+      await apiFetch(`/imoveis/${editingId}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      });
       toast('Imóvel atualizado com sucesso!');
-
     } else {
-
-      await apiFetch(
-        '/imoveis',
-        {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        }
-      );
-
+      await apiFetch('/imoveis', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
       toast('Imóvel criado com sucesso!');
     }
 
     closeModal('modalImovel');
-
     await loadImoveis();
 
   } catch (e) {
-
-    toast(
-      e.message || 'Erro ao salvar',
-      'error'
-    );
-
+    toast(e.message || 'Erro ao salvar', 'error');
   } finally {
-
     btn.disabled = false;
-
     btn.textContent = 'Salvar imóvel';
   }
 }
-
 /* =========================
    DELETE
 ========================= */

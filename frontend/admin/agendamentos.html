@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <title>Agendamentos · Painel Admin</title>
+  <style>
+    /* ── AGENDAMENTOS — complementos locais ── */
+
+    .ag-grid {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 1100px) { .ag-grid { grid-template-columns: 1fr; } }
+
+    /* Calendário */
+    .cal-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .cal-nav-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+    .cal-weekdays span {
+      text-align: center;
+      font-size: 10px;
+      color: var(--text3);
+      padding: 4px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .cal-grid-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+    .cal-day {
+      aspect-ratio: 1;
+      border-radius: var(--r);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--tr);
+      border: 1px solid transparent;
+      position: relative;
+    }
+    .cal-day.empty { background: transparent; cursor: default; pointer-events: none; }
+    .cal-day.past  { color: var(--text3); opacity: 0.45; cursor: default; background: var(--bg2); }
+    .cal-day.free  { background: var(--bg2); color: var(--text); border-color: var(--border); }
+    .cal-day.free:hover { border-color: var(--g400); background: var(--bg3); }
+    .cal-day.has-ag {
+      background: rgba(34,197,94,0.07);
+      border-color: rgba(34,197,94,0.25);
+      color: var(--text);
+    }
+    .cal-day.blocked {
+      background: rgba(239,68,68,0.08);
+      border-color: rgba(239,68,68,0.2);
+      color: #f87171;
+    }
+    .cal-day.selected {
+      background: var(--g500);
+      border-color: var(--g400);
+      color: #fff;
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.2);
+    }
+    .cal-day.today:not(.selected) { border-color: var(--gold); }
+    .cal-day .day-badge {
+      position: absolute;
+      top: 2px; right: 3px;
+      background: var(--g500);
+      color: #fff;
+      border-radius: 50%;
+      width: 14px; height: 14px;
+      font-size: 8px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cal-day.blocked .day-badge { background: var(--danger); }
+
+    .cal-legend {
+      display: flex; gap: 14px; flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .cal-legend-item {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; color: var(--text2);
+    }
+    .leg-dot {
+      width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+    }
+
+    /* Painel do dia */
+    .day-panel {
+      margin-top: 20px;
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+      display: none;
+    }
+    .day-panel-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text2);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .day-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .day-row:last-child { border-bottom: none; }
+    .day-row-label { color: var(--text2); }
+
+    .toggle-day-btn {
+      padding: 5px 14px;
+      border-radius: var(--r3);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      font-family: inherit;
+      transition: var(--tr);
+    }
+    .toggle-day-btn.livre {
+      background: rgba(34,197,94,0.1);
+      color: var(--g400);
+      border-color: rgba(34,197,94,0.3);
+    }
+    .toggle-day-btn.livre:hover { background: rgba(34,197,94,0.18); }
+    .toggle-day-btn.bloqueado {
+      background: rgba(239,68,68,0.1);
+      color: #f87171;
+      border-color: rgba(239,68,68,0.25);
+    }
+    .toggle-day-btn.bloqueado:hover { background: rgba(239,68,68,0.18); }
+
+    /* Filter bar */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .filter-pill {
+      padding: 6px 16px;
+      border-radius: var(--r3);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg2);
+      color: var(--text2);
+      font-family: inherit;
+      transition: var(--tr);
+    }
+    .filter-pill:hover { border-color: var(--border2); color: var(--text); }
+    .filter-pill.active {
+      background: rgba(34,197,94,0.1);
+      border-color: rgba(34,197,94,0.35);
+      color: var(--g400);
+    }
+
+    /* Card de agendamento */
+    .ag-list { display: flex; flex-direction: column; gap: 12px; }
+    .ag-item {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      padding: 18px 20px;
+      transition: border-color 0.2s;
+      border-left: 3px solid var(--border);
+    }
+    .ag-item:hover { border-color: var(--border2); }
+    .ag-item.pendente   { border-left-color: var(--gold); }
+    .ag-item.confirmado { border-left-color: var(--g400); }
+    .ag-item.cancelado  { border-left-color: var(--danger); opacity: 0.65; }
+    .ag-item.reagendado { border-left-color: var(--info); }
+
+    .ag-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .ag-nome { font-size: 15px; font-weight: 600; font-family: 'Playfair Display', serif; }
+    .ag-imovel { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+    .ag-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 16px;
+      margin-bottom: 12px;
+    }
+    .ag-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      color: var(--text2);
+    }
+    .ag-meta-icon { font-size: 14px; flex-shrink: 0; }
+
+    .ag-obs {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 10px 13px;
+      font-size: 12px;
+      color: var(--text2);
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+    .ag-obs-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text3);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .ag-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Badges status */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 11px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .status-pendente   { background: rgba(232,184,75,0.12); color: var(--gold2); }
+    .status-confirmado { background: rgba(34,197,94,0.12); color: var(--g400); }
+    .status-cancelado  { background: rgba(239,68,68,0.12); color: #f87171; }
+    .status-reagendado { background: rgba(59,130,246,0.12); color: #60a5fa; }
+
+    /* Modal overlay usando padrão admin.css */
+    .modal-overlay { display: none; }
+    .modal-overlay.open { display: flex; }
+
+    /* Toast admin */
+    .toast-admin {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: var(--card);
+      border: 1px solid var(--border2);
+      border-radius: var(--r);
+      padding: 14px 20px;
+      font-size: 14px;
+      color: var(--text);
+      z-index: 9999;
+      box-shadow: var(--sh);
+      transform: translateX(120%);
+      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+      max-width: 360px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .toast-admin.show { transform: translateX(0); }
+    .toast-admin.success { border-left: 3px solid var(--g400); }
+    .toast-admin.error   { border-left: 3px solid var(--danger); }
+    .toast-admin.info    { border-left: 3px solid var(--info); }
+  </style>
+</head>
+<body>
+<div class="admin-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-text">Casa <span>Certa</span></div>
+      <div class="sidebar-logo-sub">Painel Administrativo</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group">
+        <div class="nav-group-label">Principal</div>
+        <a href="dashboard.html" class="nav-link"><span class="ni">📊</span> Dashboard</a>
+        <a href="imoveis.html"   class="nav-link"><span class="ni">🏠</span> Imóveis</a>
+        <a href="agendamentos.html" class="nav-link active"><span class="ni">📅</span> Agendamentos</a>
+        <a href="leads.html"     class="nav-link"><span class="ni">👥</span> Leads</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Sistema</div>
+        <a href="usuarios.html"  class="nav-link"><span class="ni">👤</span> Usuários</a>
+        <a href="config.html"    class="nav-link"><span class="ni">⚙️</span> Configurações</a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebarAvatar">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarName">Admin</div>
+          <div class="sidebar-user-role">Administrador</div>
+        </div>
+        <button class="btn-logout" onclick="logout()" title="Sair">🚪</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar">
+      <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+      <div class="topbar-title">Agendamentos</div>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary btn-sm" onclick="openBlockModal()">🔒 Bloquear dias</button>
+        <button class="btn btn-primary btn-sm" onclick="refreshAll()">↻ Atualizar</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Stats -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-card-icon">⏳</div>
+          <div class="stat-card-val" id="stPendente" style="color:var(--gold2)">—</div>
+          <div class="stat-card-label">Pendentes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon">✅</div>
+          <div class="stat-card-val" id="stConfirmado">—</div>
+          <div class="stat-card-label">Confirmados este mês</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon">❌</div>
+          <div class="stat-card-val" id="stCancelado" style="color:#f87171">—</div>
+          <div class="stat-card-label">Cancelados este mês</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon">📋</div>
+          <div class="stat-card-val" id="stTotal">—</div>
+          <div class="stat-card-label">Total este mês</div>
+        </div>
+      </div>
+
+      <!-- Grid principal -->
+      <div class="ag-grid">
+
+        <!-- Coluna esquerda: lista -->
+        <div>
+          <div class="table-wrap">
+            <div class="table-header">
+              <div class="table-title">Solicitações</div>
+              <div class="filter-bar" style="margin-bottom:0">
+                <button class="filter-pill active" onclick="setFilter('todos',this)">Todos</button>
+                <button class="filter-pill" onclick="setFilter('pendente',this)">⏳ Pendentes</button>
+                <button class="filter-pill" onclick="setFilter('confirmado',this)">✅ Confirmados</button>
+                <button class="filter-pill" onclick="setFilter('cancelado',this)">❌ Cancelados</button>
+                <button class="filter-pill" onclick="setFilter('reagendado',this)">🔄 Reagendados</button>
+              </div>
+            </div>
+            <div style="padding: 20px 24px;">
+              <div class="ag-list" id="agList">
+                <div class="empty-state">
+                  <div class="empty-state-icon">📭</div>
+                  <div class="empty-state-title">Carregando...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna direita: calendário -->
+        <div>
+          <div class="form-card">
+            <div class="table-title" style="margin-bottom:20px">🗓️ Calendário</div>
+
+            <div class="cal-nav">
+              <button class="btn btn-ghost btn-sm" onclick="prevMonth()">← Ant.</button>
+              <span class="cal-nav-title" id="calTitle">...</span>
+              <button class="btn btn-ghost btn-sm" onclick="nextMonth()">Próx. →</button>
+            </div>
+
+            <div class="cal-legend">
+              <div class="cal-legend-item">
+                <div class="leg-dot" style="background:var(--bg2);border:1px solid var(--border)"></div>
+                Livre
+              </div>
+              <div class="cal-legend-item">
+                <div class="leg-dot" style="background:rgba(34,197,94,0.3)"></div>
+                Com agend.
+              </div>
+              <div class="cal-legend-item">
+                <div class="leg-dot" style="background:rgba(239,68,68,0.3)"></div>
+                Bloqueado
+              </div>
+              <div class="cal-legend-item">
+                <div class="leg-dot" style="border:1px solid var(--gold);background:transparent"></div>
+                Hoje
+              </div>
+            </div>
+
+            <div class="cal-weekdays">
+              <span>D</span><span>S</span><span>T</span>
+              <span>Q</span><span>Q</span><span>S</span><span>S</span>
+            </div>
+            <div class="cal-grid-days" id="calGrid"></div>
+
+            <!-- Painel do dia selecionado -->
+            <div class="day-panel" id="dayPanel">
+              <div class="day-panel-title" id="dayPanelTitle">Dia selecionado</div>
+              <div id="dayPanelContent"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal: Bloquear dias em lote -->
+<div class="modal-overlay" id="blockModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Bloquear / Liberar Dias</div>
+      <button class="modal-close" onclick="closeModal('blockModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field">
+          <label>Data Inicial</label>
+          <input type="date" id="blockStart">
+        </div>
+        <div class="field">
+          <label>Data Final</label>
+          <input type="date" id="blockEnd">
+          <div class="field-hint">Pode ser a mesma data para um único dia</div>
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Motivo (opcional)</label>
+          <input type="text" id="blockMotivo" placeholder="Ex: feriado, recesso, viagem...">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('blockModal')">Cancelar</button>
+      <button class="btn btn-danger" onclick="applyBlock(true)">🔒 Bloquear período</button>
+      <button class="btn btn-secondary" onclick="applyBlock(false)">🔓 Liberar período</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Ação no agendamento -->
+<div class="modal-overlay" id="actionModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="actionModalTitle">Ação</div>
+      <button class="modal-close" onclick="closeModal('actionModal')">✕</button>
+    </div>
+    <div class="modal-body" id="actionModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('actionModal')">Cancelar</button>
+      <button class="btn btn-primary" id="actionModalConfirm">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-admin" id="toastAdmin"></div>
+
+<script src="admin.js"></script>
+<script>
+  // ============================================================
+  // CONFIGURAÇÃO — substitua pelos seus valores
+  // ============================================================
+  const SUPABASE_URL  = 'https:uuihfrocfeymztydrnsn.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1aWhmcm9jZmV5bXp0eWRybnNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzkyNDYsImV4cCI6MjA5NDcxNTI0Nn0.mtSRERwAd7pzlxEeaF-7WDJ3xPFWi7SUz22PVd-a6YQ';
+  // ============================================================
+
+  let currentYear, currentMonth;
+  let agendamentos = [], bloqueios = [];
+  let currentFilter = 'todos';
+  let selectedCalDay = null;
+
+  const today = new Date();
+  currentYear  = today.getFullYear();
+  currentMonth = today.getMonth();
+
+  // ── INIT ──
+  async function init() {
+    await requireAuth();
+
+    // Preenche avatar/nome da sidebar com dados do usuário logado
+    const user = JSON.parse(localStorage.getItem('adminUser') || '{}');
+    if (user.nome) {
+      document.getElementById('sidebarName').textContent = user.nome;
+      document.getElementById('sidebarAvatar').textContent = user.nome[0].toUpperCase();
+    }
+
+    await refreshAll();
+  }
+
+  async function refreshAll() {
+    await Promise.all([loadAgendamentos(), loadBloqueios()]);
+    renderCalendar();
+    renderList();
+    updateStats();
+  }
+// Esta função é o que falta para fazer o status mudar de verdade
+async function alterarStatus(id, novoStatus) {
+    try {
+        // 1. Envia para o Supabase (estou assumindo que você usa uma função global ou 'sb' para acessar)
+        // Substitua 'sb' pelo nome da sua variável de cliente do Supabase
+        const { error } = await sb
+            .from('agendamentos')
+            .update({ status: novoStatus })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        // 2. Atualiza o array local para não precisar dar F5
+        const index = agendamentos.findIndex(a => a.id === id);
+        if (index !== -1) {
+            agendamentos[index].status = novoStatus;
+        }
+
+        // 3. Atualiza a interface
+        renderList();     // Redesenha a lista
+        updateStats();    // Recalcula os totais (Pendente, Cancelado, etc.)
+        
+        // 4. Feedback visual
+        toast(`Agendamento atualizado para ${novoStatus}!`, 'success');
+
+    } catch (err) {
+        console.error(err);
+        toast('Erro ao atualizar status', 'error');
+    }
+}
+  // ── SUPABASE ──
+  async function sbFetch(path, options = {}) {
+
+  const finalHeaders = {
+    apikey: SUPABASE_ANON,
+    Authorization: `Bearer ${SUPABASE_ANON}`,
+    'Content-Type': 'application/json',
+    Prefer: 'return=representation',
+    ...(options.headers || {})
+  };
+
+  console.log('HEADERS:', finalHeaders);
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...options,
+    headers: finalHeaders
+  });
+
+  const text = await res.text();
+
+  console.log('STATUS:', res.status);
+  console.log('RESPONSE:', text);
+
+  if (!res.ok) {
+    throw new Error(text);
+  }
+
+  return text ? JSON.parse(text) : null;
+}
+
+  async function loadAgendamentos() {
+    try {
+      agendamentos = await sbFetch('agendamentos?select=*&order=created_at.desc');
+    } catch(e) {
+      agendamentos = [];
+      showToast('⚠️ Erro ao carregar agendamentos', 'error');
+    }
+  }
+
+  async function loadBloqueios() {
+    try {
+      bloqueios = await sbFetch('disponibilidade?select=*');
+    } catch(e) {
+      bloqueios = [];
+    }
+  }
+
+  // ── STATS ──
+  function updateStats() {
+    async function alterarStatus(id, novoStatus) {
+    // 1. Atualiza no Banco de Dados
+    const { error } = await supabase
+        .from('agendamentos')
+        .update({ status: novoStatus })
+        .eq('id', id);
+
+    if (error) {
+        alert("Erro ao salvar no banco: " + error.message);
+        return;
+    }
+
+    // 2. Atualiza no Array Local (o que o JavaScript vê)
+    const index = agendamentos.findIndex(a => a.id === id);
+    if (index !== -1) {
+        agendamentos[index].status = novoStatus;
+    }
+
+    // 3. Atualiza a tela e os números do dashboard
+    renderList();     // Atualiza a lista visual
+    updateStats();    // Atualiza os contadores de "Pendente", "Cancelado", etc.
+
+    alert("Status alterado com sucesso!");
+}
+    const mesStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
+    const doMes  = agendamentos.filter(a => a.data && a.data.startsWith(mesStr));
+    document.getElementById('stPendente').textContent   = agendamentos.filter(a => a.status === 'pendente').length;
+    document.getElementById('stConfirmado').textContent = doMes.filter(a => a.status === 'confirmado').length;
+    document.getElementById('stCancelado').textContent  = doMes.filter(a => a.status === 'cancelado').length;
+    document.getElementById('stTotal').textContent      = doMes.length;
+  }
+
+  // ── CALENDÁRIO ──
+  function renderCalendar() {
+    const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                   'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    document.getElementById('calTitle').textContent = `${meses[currentMonth]} ${currentYear}`;
+
+    const grid    = document.getElementById('calGrid');
+    const first   = new Date(currentYear, currentMonth, 1).getDay();
+    const total   = new Date(currentYear, currentMonth+1, 0).getDate();
+    const todayStr = toDateStr(today);
+
+    let html = '';
+    for (let i = 0; i < first; i++) html += `<div class="cal-day empty"></div>`;
+
+    for (let d = 1; d <= total; d++) {
+      const str  = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const dt   = new Date(currentYear, currentMonth, d);
+      const isPast    = dt < new Date(todayStr) && str !== todayStr;
+      const isBlocked = bloqueios.some(b => b.data === str && b.bloqueado);
+      const ags       = agendamentos.filter(a => a.data === str && a.status !== 'cancelado');
+      const isSel     = selectedCalDay === str;
+      const isToday   = str === todayStr;
+
+      let cls = 'cal-day';
+      if (isSel)         cls += ' selected';
+      else if (isPast)   cls += ' past';
+      else if (isBlocked)cls += ' blocked';
+      else if (ags.length) cls += ' has-ag';
+      else                 cls += ' free';
+      if (isToday && !isSel) cls += ' today';
+
+      const badge = ags.length > 0 ? `<span class="day-badge">${ags.length}</span>` : '';
+      html += `<div class="${cls}" onclick="selectCalDay('${str}')">${d}${badge}</div>`;
+    }
+
+    grid.innerHTML = html;
+  }
+
+  function selectCalDay(str) {
+    selectedCalDay = str;
+    renderCalendar();
+    showDayPanel(str);
+  }
+
+  function showDayPanel(str) {
+    const panel   = document.getElementById('dayPanel');
+    const title   = document.getElementById('dayPanelTitle');
+    const content = document.getElementById('dayPanelContent');
+
+    const [y,m,d] = str.split('-');
+    const dt = new Date(Number(y), Number(m)-1, Number(d));
+    title.textContent = dt.toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+    const isBlocked = bloqueios.some(b => b.data === str && b.bloqueado);
+    const ags = agendamentos.filter(a => a.data === str && a.status !== 'cancelado');
+    const statusCls = isBlocked ? 'bloqueado' : 'livre';
+    const statusLbl = isBlocked ? '🔒 Bloqueado' : '🟢 Disponível';
+
+    let html = `
+      <div class="day-row">
+        <span class="day-row-label">Status</span>
+        <button class="toggle-day-btn ${statusCls}" onclick="toggleDay('${str}', ${isBlocked})">
+          ${statusLbl}
+        </button>
+      </div>
+      <div class="day-row">
+        <span class="day-row-label">Agendamentos ativos</span>
+        <span style="color:var(--g400);font-weight:600">${ags.length} visita(s)</span>
+      </div>`;
+
+    ags.forEach(a => {
+      const pl = a.periodo === 'manha' ? 'Manhã' : 'Tarde';
+      html += `
+        <div class="day-row">
+          <span class="day-row-label" style="font-size:12px">${esc(a.nome)} · ${pl}</span>
+          <span class="status-badge status-${a.status}">${a.status}</span>
+        </div>`;
+    });
+
+    content.innerHTML = html;
+    panel.style.display = 'block';
+  }
+
+  async function toggleDay(str, currentlyBlocked) {
+    try {
+      await sbFetch('disponibilidade', {
+        method: 'POST',
+        headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
+        body: JSON.stringify({ data: str, bloqueado: !currentlyBlocked })
+      });
+      await loadBloqueios();
+      renderCalendar();
+      showDayPanel(str);
+      showToast(currentlyBlocked ? '🔓 Dia liberado!' : '🔒 Dia bloqueado!', 'success');
+    } catch(e) {
+      showToast('❌ Erro ao alterar dia', 'error');
+    }
+  }
+
+  function prevMonth() {
+    if (currentMonth === 0) { currentMonth = 11; currentYear--; } else currentMonth--;
+    selectedCalDay = null;
+    document.getElementById('dayPanel').style.display = 'none';
+    renderCalendar();
+    updateStats();
+  }
+  function nextMonth() {
+    if (currentMonth === 11) { currentMonth = 0; currentYear++; } else currentMonth++;
+    selectedCalDay = null;
+    document.getElementById('dayPanel').style.display = 'none';
+    renderCalendar();
+    updateStats();
+  }
+
+  // ── LISTA ──
+ function setFilter(f, btn) {
+    currentFilter = f;
+    
+    // Remove a classe 'active' de todos os botões e coloca no que foi clicado
+    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    // CHAMA A RENDERIZAÇÃO NOVAMENTE COM O NOVO FILTRO
+    renderList(); 
+}
+
+ function renderList() {
+    console.log("Renderizando lista. Filtro atual:", currentFilter);
+    const list = document.getElementById('agList');
+    
+    if (!list) {
+        console.error("ERRO: Elemento 'agList' não encontrado no DOM!");
+        return;
+    }
+
+    const data = currentFilter === 'todos'
+      ? agendamentos
+      : agendamentos.filter(a => a.status === currentFilter);
+
+    console.log("Dados filtrados para renderizar:", data);
+
+    if (data.length === 0) {
+      list.innerHTML = `<div class="empty-state">Nenhum agendamento com status: ${currentFilter}</div>`;
+      return;
+    }
+
+    list.innerHTML = data.map(buildAgItem).join('');
+    console.log("Renderização concluída.");
+}
+
+  function buildAgItem(a) {
+    const dt = a.data ? new Date(a.data + 'T12:00:00') : null;
+    const dataFmt = dt ? dt.toLocaleDateString('pt-BR',
+      { weekday:'short', day:'2-digit', month:'short', year:'numeric' }) : '—';
+    const pl = a.periodo === 'manha' ? '☀️ Manhã (08h–12h)' : '🌅 Tarde (14h–18h)';
+    const criadoEm = a.created_at ? new Date(a.created_at).toLocaleDateString('pt-BR') : '';
+
+    const badgeMap = {
+      pendente:   `<span class="status-badge status-pendente">⏳ Pendente</span>`,
+      confirmado: `<span class="status-badge status-confirmado">✅ Confirmado</span>`,
+      cancelado:  `<span class="status-badge status-cancelado">❌ Cancelado</span>`,
+      reagendado: `<span class="status-badge status-reagendado">🔄 Reagendado</span>`,
+    };
+
+    const actions = a.status !== 'cancelado' ? `
+      <button class="btn btn-secondary btn-sm" onclick="confirmarAg('${a.id}')">✅ Confirmar</button>
+      <button class="btn btn-ghost btn-sm" onclick="reagendarAg('${a.id}','${a.data}','${a.periodo}')">🔄 Reagendar</button>
+      <button class="btn btn-danger btn-sm" onclick="cancelarAg('${a.id}','${esc(a.nome)}')">❌ Cancelar</button>
+      <button class="btn btn-ghost btn-sm" onclick="addNota('${a.id}')">📝 Nota</button>
+      <button class="btn btn-ghost btn-sm" onclick="notificarCliente('${a.whatsapp}','${esc(a.nome)}','${a.data}','${a.periodo}','${a.status}')">📲 WhatsApp</button>` : '';
+
+    const obs  = a.observacao    ? `<div class="ag-obs"><span class="ag-obs-label">Observação do cliente</span>${esc(a.observacao)}</div>` : '';
+    const nota = a.nota_interna  ? `<div class="ag-obs"><span class="ag-obs-label">📝 Nota interna</span>${esc(a.nota_interna)}</div>` : '';
+
+    return `
+      <div class="ag-item ${a.status}" id="ag-${a.id}">
+        <div class="ag-item-top">
+          <div>
+            <div class="ag-nome">${esc(a.nome)}</div>
+            ${a.imovel_id ? `<div class="ag-imovel">Imóvel #${a.imovel_id}</div>` : ''}
+          </div>
+          ${badgeMap[a.status] || ''}
+        </div>
+        <div class="ag-meta">
+          <div class="ag-meta-item"><span class="ag-meta-icon">📅</span>${dataFmt}</div>
+          <div class="ag-meta-item"><span class="ag-meta-icon">🕐</span>${pl}</div>
+          <div class="ag-meta-item"><span class="ag-meta-icon">📱</span>${esc(a.whatsapp)}</div>
+          <div class="ag-meta-item"><span class="ag-meta-icon">📧</span>${a.email ? esc(a.email) : '—'}</div>
+          <div class="ag-meta-item" style="color:var(--text3);font-size:12px"><span class="ag-meta-icon">🕐</span>Solicitado em ${criadoEm}</div>
+        </div>
+        ${obs}${nota}
+        <div class="ag-actions">${actions}</div>
+      </div>`;
+  }
+
+  // ── AÇÕES ──
+  async function updateStatus(id, status, extra = {}) {
+    try {
+      await sbFetch(`agendamentos?id=eq.${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status, ...extra })
+      });
+      await loadAgendamentos();
+      renderCalendar();
+      renderList();
+      updateStats();
+      if (selectedCalDay) showDayPanel(selectedCalDay);
+      return true;
+    } catch(e) {
+      showToast('❌ Erro: ' + e.message, 'error');
+      return false;
+    }
+  }
+
+  function confirmarAg(id) {
+    openActionModal(
+      '✅ Confirmar Agendamento',
+      `<p style="color:var(--text2);font-size:14px;line-height:1.6">
+        Confirmar este agendamento? O cliente será notificado via WhatsApp.
+      </p>`,
+      async () => {
+        const ok = await updateStatus(id, 'confirmado');
+        if (ok) {
+          showToast('✅ Agendamento confirmado!', 'success');
+          const ag = agendamentos.find(a => a.id == id);
+          if (ag) notificarCliente(ag.whatsapp, ag.nome, ag.data, ag.periodo, 'confirmado');
+        }
+      }
+    );
+  }
+
+  function cancelarAg(id, nome) {
+    openActionModal(
+      '❌ Cancelar Agendamento',
+      `<p style="color:var(--text2);font-size:14px;margin-bottom:16px">
+        Cancelar o agendamento de <strong>${nome}</strong>?
+      </p>
+      <div class="field">
+        <label>Motivo do cancelamento</label>
+        <textarea id="motivoCancel" rows="3" placeholder="Ex: imóvel indisponível nessa data..."></textarea>
+      </div>`,
+      async () => {
+        const motivo = document.getElementById('motivoCancel')?.value || '';
+        const ok = await updateStatus(id, 'cancelado', { nota_interna: motivo });
+        if (ok) showToast('Agendamento cancelado', 'info');
+      }
+    );
+  }
+
+  function reagendarAg(id, dataAtual, periodoAtual) {
+    openActionModal(
+      '🔄 Reagendar Visita',
+      `<div class="form-grid">
+        <div class="field">
+          <label>Nova Data</label>
+          <input type="date" id="novaData" value="${dataAtual}">
+        </div>
+        <div class="field">
+          <label>Novo Período</label>
+          <select id="novoPeriodo">
+            <option value="manha" ${periodoAtual==='manha'?'selected':''}>Manhã (08h–12h)</option>
+            <option value="tarde" ${periodoAtual==='tarde'?'selected':''}>Tarde (14h–18h)</option>
+          </select>
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Nota interna</label>
+          <textarea id="notaReag" rows="2" placeholder="Motivo do reagendamento..."></textarea>
+        </div>
+      </div>`,
+      async () => {
+        const nd = document.getElementById('novaData').value;
+        const np = document.getElementById('novoPeriodo').value;
+        const nt = document.getElementById('notaReag').value;
+        if (!nd) { showToast('Informe a nova data', 'error'); return; }
+        const ok = await updateStatus(id, 'reagendado', { data: nd, periodo: np, nota_interna: nt });
+        if (ok) showToast('🔄 Visita reagendada!', 'success');
+      }
+    );
+  }
+
+  function addNota(id) {
+    const ag = agendamentos.find(a => a.id == id);
+    openActionModal(
+      '📝 Nota Interna',
+      `<div class="field">
+        <label>Nota (visível apenas para admins)</label>
+        <textarea id="notaInterna" rows="4" placeholder="Escreva a nota...">${esc(ag?.nota_interna || '')}</textarea>
+      </div>`,
+      async () => {
+        const nota = document.getElementById('notaInterna').value;
+        const ok = await updateStatus(id, ag.status, { nota_interna: nota });
+        if (ok) showToast('📝 Nota salva!', 'success');
+      }
+    );
+  }
+
+  // ── BLOQUEAR DIAS ──
+  function openBlockModal() {
+    document.getElementById('blockModal').classList.add('open');
+  }
+
+  async function applyBlock(bloquear) {
+    const start = document.getElementById('blockStart').value;
+    const end   = document.getElementById('blockEnd').value || start;
+    if (!start) { showToast('Informe a data inicial', 'error'); return; }
+    closeModal('blockModal');
+    const datas = getDatesInRange(start, end);
+    try {
+      for (const dt of datas) {
+        await sbFetch('disponibilidade', {
+          method: 'POST',
+          headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
+          body: JSON.stringify({ data: dt, bloqueado: bloquear })
+        });
+      }
+      await loadBloqueios();
+      renderCalendar();
+      showToast(`${bloquear?'🔒 Bloqueados':'🔓 Liberados'}: ${datas.length} dia(s)`, 'success');
+    } catch(e) {
+      showToast('❌ Erro ao aplicar: ' + e.message, 'error');
+    }
+  }
+
+  function getDatesInRange(start, end) {
+    const result = [];
+    let cur  = new Date(start + 'T12:00:00');
+    const last = new Date(end   + 'T12:00:00');
+    while (cur <= last) { result.push(toDateStr(cur)); cur.setDate(cur.getDate()+1); }
+    return result;
+  }
+
+  // ── WHATSAPP ──
+  function notificarCliente(whatsapp, nome, data, periodo, status) {
+    if (!whatsapp) return;
+    const num = whatsapp.replace(/\D/g,'');
+    const pl  = periodo === 'manha' ? 'Manhã (08h–12h)' : 'Tarde (14h–18h)';
+    const msgs = {
+      confirmado: `✅ *Agendamento Confirmado!*\n\nOlá ${nome}! Sua visita está confirmada:\n📅 ${data}\n🕐 ${pl}\n\nAguardamos você! Dúvidas? Estamos à disposição. 🏠`,
+      cancelado:  `❌ *Visita Cancelada*\n\nOlá ${nome}, seu agendamento para ${data} foi cancelado. Entre em contato para reagendar.`,
+      reagendado: `🔄 *Visita Reagendada*\n\nOlá ${nome}! Sua visita foi reagendada:\n📅 ${data}\n🕐 ${pl}\n\nAguardamos você!`,
+    };
+    const msg = msgs[status] || `Olá ${nome}, temos uma atualização sobre seu agendamento no Casa Certa.`;
+    window.open(`https://wa.me/55${num}?text=${encodeURIComponent(msg)}`, '_blank');
+  }
+
+  // ── MODAL ──
+  function openActionModal(title, body, onConfirm) {
+    document.getElementById('actionModalTitle').textContent = title;
+    document.getElementById('actionModalBody').innerHTML = body;
+    document.getElementById('actionModalConfirm').onclick = async () => {
+      closeModal('actionModal');
+      await onConfirm();
+    };
+    document.getElementById('actionModal').classList.add('open');
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+
+  // ── TOAST ──
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toastAdmin');
+    t.textContent = msg;
+    t.className = `toast-admin ${type} show`;
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // ── UTILS ──
+  function toDateStr(dt) {
+    return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  }
+  function esc(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function logout() {
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminUser');
+    window.location.href = 'login.html';
+  }
+
+  init();
+</script>
+</body>
+</html>
