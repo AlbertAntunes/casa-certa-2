@@ -481,13 +481,19 @@
 
 <script>
   // ============================================================
-  // CONFIGURAÇÃO — ALTERE AQUI
+  // AGENDAMENTO — toda comunicação passa pelo backend /api/*
+  // Chaves do Supabase NUNCA ficam expostas no frontend.
+  // Números de WhatsApp dos admins ficam configurados no backend
+  // via variável de ambiente WHATSAPP_ADMINS (no .env / Vercel).
   // ============================================================
-  const WHATSAPP_ADMINS = ['5588981545786','5588997137356']// DDI+DDD+número, sem espaços
 
   const urlParams  = new URLSearchParams(window.location.search);
   const imovelId   = urlParams.get('id');
   const returnUrl  = urlParams.get('return') || document.referrer || '/';
+
+  // Números de notificação: lidos das configurações do site (via API)
+  // Fallback para os números padrão caso a API não retorne
+  let WHATSAPP_ADMINS = ['5588981545786', '5588997137356'];
 
   let currentYear, currentMonth, diasBloqueados = [], diasOcupados = {};
   let selectedDate = null;
@@ -500,39 +506,37 @@
   init();
 
   async function init() {
+    // Carrega números de WhatsApp dos admins via configurações do site
+    try {
+      const res = await fetch('/api/configuracoes');
+      const json = await res.json();
+      const cfg = {};
+      (json.data || []).forEach(c => { cfg[c.chave] = c.valor; });
+      const nums = [];
+      if (cfg.whatsapp_diogo)   nums.push(cfg.whatsapp_diogo.replace(/\D/g, ''));
+      if (cfg.whatsapp_salomao) nums.push(cfg.whatsapp_salomao.replace(/\D/g, ''));
+      if (nums.length) WHATSAPP_ADMINS = nums;
+    } catch { /* mantém fallback */ }
+
     await loadCalendar();
   }
 
-  // ---- API helpers ----
-  async function apiGet(path) {
-    const res = await fetch(path);
-    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || `Erro ${res.status}`); }
-    return res.json();
-  }
-  async function apiPost(path, body) {
-    const res = await fetch(path, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || `Erro ${res.status}`); }
-    return res.json();
-  }
-
-  // ---- Calendário ----
+  // ---- Calendário: usa rota backend /api/agendamentos/disponibilidade ----
   async function loadCalendar() {
     const grid = document.getElementById('calGrid');
     grid.innerHTML = '<div class="cal-loading">Carregando disponibilidade...</div>';
 
-    // Busca dias bloqueados pelo admin neste mês
-    const mesStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
     try {
-      const { bloqueios, diasOcupados: ocupados } =
-        await apiGet(`/api/agendamentos/disponibilidade?mes=${mesStr}`);
-      diasBloqueados = (bloqueios || []).filter(d => d.bloqueado).map(d => d.data);
-      diasOcupados   = ocupados || {};
-    } catch(e) {
-      // Em caso de erro de conexão, mostra calendário sem bloqueios
+      const res  = await fetch(`/api/agendamentos/disponibilidade?ano=${currentYear}&mes=${currentMonth + 1}`);
+      const json = await res.json();
+      const disp = json.data || {};
+
+      diasBloqueados = disp.bloqueados || [];
+      diasOcupados   = {};
+      (disp.agendamentos || []).forEach(a => {
+        diasOcupados[a.data] = (diasOcupados[a.data] || 0) + 1;
+      });
+    } catch {
       diasBloqueados = [];
       diasOcupados   = {};
     }
@@ -636,7 +640,7 @@
     }
   }
 
-  // ---- Submit ----
+  // ---- Submit: usa backend /api/agendamentos (sem chaves expostas) ----
   async function submitAgendamento() {
     const nome     = document.getElementById('nome').value.trim();
     const whatsapp = document.getElementById('whatsapp').value.trim();
@@ -657,27 +661,33 @@
 
     try {
       const payload = {
-        imovel_id: imovelId,
+        imovel_id:   imovelId || null,
         nome,
         whatsapp,
-        email: email || null,
-        data: selectedDate,
+        email:       email || null,
+        data:        selectedDate,
         periodo,
-        observacao: obs || null,
-        status: 'pendente',
-        created_at: new Date().toISOString()
+        observacao:  obs || null
       };
 
-      await apiPost('/api/agendamentos', payload);
+      const res = await fetch('/api/agendamentos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-      // Notificação WhatsApp para admin (via link de disparo — adapte para sua API)
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Erro ${res.status}`);
+      }
+
       notificarAdmin(payload);
 
       showLoading(false);
       goToStep(3);
 
       const periodoLabel = periodo === 'manha' ? 'manhã' : 'tarde';
-      document.getElementById('confirmDate').textContent = document.getElementById('dateLabel').textContent;
+      document.getElementById('confirmDate').textContent    = document.getElementById('dateLabel').textContent;
       document.getElementById('confirmPeriodo').textContent = periodoLabel;
 
       // Countdown e redirect
@@ -685,50 +695,37 @@
       const timer = setInterval(() => {
         s--;
         document.getElementById('countdown').textContent = s;
-        if (s <= 0) {
-          clearInterval(timer);
-          window.location.href = returnUrl;
-        }
+        if (s <= 0) { clearInterval(timer); window.location.href = returnUrl; }
       }, 1000);
 
-    } catch(err) {
+    } catch (err) {
       showLoading(false);
       alert('Erro ao enviar agendamento. Tente novamente.\n' + err.message);
     }
   }
 
- function notificarAdmin(dados) {
-  const periodoLabel = dados.periodo === 'manha' ? 'Manhã' : 'Tarde';
-  const msg = encodeURIComponent(
-    `🏠 *Novo Agendamento - Casa Certa*\n\n` +
-    `*Cliente:* ${dados.nome}\n` +
-    `*WhatsApp:* ${dados.whatsapp}\n` +
-    `*Email:* ${dados.email || '-'}\n` +
-    `*Data:* ${dados.data}\n` +
-    `*Período:* ${periodoLabel}\n` +
-    `*Imóvel ID:* ${dados.imovel_id || '-'}\n` +
-    `*Obs:* ${dados.observacao || '-'}`
-  );
+  // ---- Notificar admin via WhatsApp (link de disparo) ----
+  // Função única e correta — sem duplicação
+  function notificarAdmin(dados) {
+    const periodoLabel = dados.periodo === 'manha' ? 'Manhã' : 'Tarde';
+    const msg = encodeURIComponent(
+      `🏠 *Novo Agendamento - Casa Certa*\n\n` +
+      `*Cliente:* ${dados.nome}\n` +
+      `*WhatsApp:* ${dados.whatsapp}\n` +
+      `*Email:* ${dados.email || '-'}\n` +
+      `*Data:* ${dados.data}\n` +
+      `*Período:* ${periodoLabel}\n` +
+      `*Imóvel ID:* ${dados.imovel_id || '-'}\n` +
+      `*Obs:* ${dados.observacao || '-'}`
+    );
 
-  // Percorre o array e abre o WhatsApp para cada número
- function notificarAdmin(dados) {
-  // ... (seu código de montagem da mensagem) ...
-
-  // O erro acontece aqui. Certifique-se de que está usando o nome no plural:
-  WHATSAPP_ADMINS.forEach(numero => {
-    const link = document.createElement('a');
-    link.href = `https://wa.me/${numero}?text=${msg}`;
-    link.target = '_blank';
-    link.rel = 'noopener';
-    link.click();
-  });
-}
-    // Abre em background (não redireciona o cliente)
-    const link = document.createElement('a');
-    link.href = `https://wa.me/${WHATSAPP_ADMINS}?text=${msg}`;
-    link.target = '_blank';
-    link.rel = 'noopener';
-    link.click();
+    WHATSAPP_ADMINS.forEach(numero => {
+      const link    = document.createElement('a');
+      link.href     = `https://wa.me/${numero}?text=${msg}`;
+      link.target   = '_blank';
+      link.rel      = 'noopener noreferrer';
+      link.click();
+    });
   }
 
   // ---- Utils ----

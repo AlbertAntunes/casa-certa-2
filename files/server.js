@@ -9,16 +9,18 @@ const multer   = require('multer');
 const { createClient } = require('@supabase/supabase-js');
 
 /* ══════════════════════════════════════════
-   SUPABASE
+   VALIDAÇÃO DE AMBIENTE — falha rápido se
+   variáveis críticas estiverem ausentes.
 ══════════════════════════════════════════ */
-// SERVICE_KEY bypassa RLS (escrita protegida).
-// Fallback para ANON_KEY caso a service key não esteja configurada ainda.
-const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY
-);
+const REQUIRED_ENV = ['SUPABASE_URL', 'SUPABASE_SERVICE_KEY', 'JWT_SECRET'];
+const missing = REQUIRED_ENV.filter(k => !process.env[k]);
+if (missing.length) {
+    console.error(`❌  Variáveis de ambiente ausentes: ${missing.join(', ')}`);
+    process.exit(1);
+}
 
-const JWT_SECRET = process.env.JWT_SECRET || 'casacerta-secret-2025';
+const supabase  = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+const JWT_SECRET = process.env.JWT_SECRET;
 const upload     = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 /* ══════════════════════════════════════════
@@ -26,7 +28,20 @@ const upload     = multer({ storage: multer.memoryStorage(), limits: { fileSize:
 ══════════════════════════════════════════ */
 const app = express();
 
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000', credentials: true }));
+/* CORS: aceita lista de origens separada por vírgula ou wildcard */
+const rawOrigins = process.env.CORS_ORIGIN || '';
+const allowedOrigins = rawOrigins.split(',').map(o => o.trim()).filter(Boolean);
+
+app.use(cors({
+    origin: (origin, cb) => {
+        if (!origin) return cb(null, true);           // requests server-side / curl
+        if (!allowedOrigins.length) return cb(null, true); // sem restrição se var vazia
+        if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) return cb(null, true);
+        cb(new Error(`CORS bloqueado para origem: ${origin}`));
+    },
+    credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
@@ -41,14 +56,14 @@ function authMiddleware(req, res, next) {
         req.user = jwt.verify(auth.slice(7), JWT_SECRET);
         next();
     } catch {
-        res.status(401).json({ error: 'Token inválido' });
+        res.status(401).json({ error: 'Token inválido ou expirado' });
     }
 }
 
 /* ══════════════════════════════════════════
    STATUS
 ══════════════════════════════════════════ */
-app.get('/api/status', (req, res) => res.json({ status: 'ok' }));
+app.get('/api/status', (req, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 
 /* ══════════════════════════════════════════
    AUTH
@@ -78,6 +93,11 @@ app.get('/api/auth/me', authMiddleware, (req, res) => {
     res.json({ data: req.user });
 });
 
+/* Rota de logout — stateless, apenas confirmação */
+app.post('/api/auth/logout', authMiddleware, (req, res) => {
+    res.json({ success: true, message: 'Logout efetuado' });
+});
+
 /* ══════════════════════════════════════════
    UPLOAD (Supabase Storage)
 ══════════════════════════════════════════ */
@@ -89,24 +109,18 @@ app.post('/api/upload', authMiddleware, upload.single('file'), async (req, res, 
 
         const ext      = file.originalname.split('.').pop();
         const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-        const filePath = `${filename}`;
 
         const { error } = await supabase.storage
-            .from(bucket).upload(filePath, file.buffer, { contentType: file.mimetype, upsert: false });
+            .from(bucket).upload(filename, file.buffer, { contentType: file.mimetype, upsert: false });
         if (error) throw error;
 
-        const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(filePath);
-        res.json({ url: publicUrl, path: filePath });
+        const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(filename);
+        res.json({ url: publicUrl, path: filename });
     } catch (e) { next(e); }
 });
 
 /* ══════════════════════════════════════════
    CONFIGURAÇÕES  (tabela: configuracoes_site)
-   GET  /api/configuracoes
-   GET  /api/configuracoes/:chave
-   PUT  /api/configuracoes/:chave   ← salva do admin
-   GET  /api/configuracoes/carrossel
-   PUT  /api/configuracoes/carrossel
 ══════════════════════════════════════════ */
 app.get('/api/configuracoes', async (req, res, next) => {
     try {
@@ -128,7 +142,6 @@ app.get('/api/configuracoes/carrossel', async (req, res, next) => {
 app.put('/api/configuracoes/carrossel', authMiddleware, async (req, res, next) => {
     try {
         const { autoplay, intervalo_ms, velocidade_ms } = req.body;
-        // upsert: se não existe cria, se existe atualiza
         const { data: existing } = await supabase.from('configuracoes_carrossel').select('id').single();
         let result;
         if (existing) {
@@ -144,11 +157,15 @@ app.put('/api/configuracoes/carrossel', authMiddleware, async (req, res, next) =
     } catch (e) { next(e); }
 });
 
+/* CORREÇÃO: busca corretamente em configuracoes_site por chave */
 app.get('/api/configuracoes/:chave', async (req, res, next) => {
     try {
-        // Versão mais segura:
-const { data, error } = await supabase.from('configuracoes').select('*');
-const config = data && data.length > 0 ? data[0] : null;
+        const { chave } = req.params;
+        const { data, error } = await supabase
+            .from('configuracoes_site')
+            .select('*')
+            .eq('chave', chave)
+            .single();
         if (error && error.code !== 'PGRST116') throw error;
         res.json({ data: data || null });
     } catch (e) { next(e); }
@@ -158,8 +175,6 @@ app.put('/api/configuracoes/:chave', authMiddleware, async (req, res, next) => {
     try {
         const { chave } = req.params;
         const { valor }  = req.body;
-
-        // upsert por chave
         const { data, error } = await supabase
             .from('configuracoes_site')
             .upsert({ chave, valor, updated_at: new Date() }, { onConflict: 'chave' })
@@ -176,11 +191,11 @@ app.get('/api/imoveis', async (req, res, next) => {
     try {
         const { status, tipo, destaque, limit = 50, offset = 0 } = req.query;
         let query = supabase.from('imoveis')
-            .select('*, imagens_imoveis(url, ordem, is_capa)')
+            .select('*, imagens_imoveis(id, url, ordem, is_capa)')
             .order('created_at', { ascending: false })
             .range(Number(offset), Number(offset) + Number(limit) - 1);
-        if (status) query = query.eq('status', status);
-        if (tipo)   query = query.eq('tipo', tipo);
+        if (status)            query = query.eq('status', status);
+        if (tipo)              query = query.eq('tipo', tipo);
         if (destaque === 'true') query = query.eq('destaque', true);
         const { data, error } = await query;
         if (error) throw error;
@@ -191,7 +206,7 @@ app.get('/api/imoveis', async (req, res, next) => {
 app.get('/api/imoveis/:id', async (req, res, next) => {
     try {
         const { data, error } = await supabase.from('imoveis')
-            .select('*, imagens_imoveis(url, ordem, is_capa)')
+            .select('*, imagens_imoveis(id, url, ordem, is_capa)')
             .eq('id', req.params.id).single();
         if (error) throw error;
         if (!data) return res.status(404).json({ error: 'Imóvel não encontrado' });
@@ -255,12 +270,89 @@ app.delete('/api/imoveis/:id/imagens/:imgId', authMiddleware, async (req, res, n
 });
 
 /* ══════════════════════════════════════════
+   AGENDAMENTOS (rota criada — não existia antes)
+══════════════════════════════════════════ */
+app.post('/api/agendamentos', async (req, res, next) => {
+    try {
+        const { imovel_id, nome, whatsapp, email, data: dataVisita, periodo, observacao } = req.body;
+        if (!nome || !whatsapp || !dataVisita) {
+            return res.status(400).json({ error: 'Nome, WhatsApp e data são obrigatórios' });
+        }
+        const { data, error } = await supabase.from('agendamentos')
+            .insert([{ imovel_id, nome, whatsapp, email: email || null, data: dataVisita, periodo: periodo || 'manha', observacao: observacao || null, status: 'pendente' }])
+            .select().single();
+        if (error) throw error;
+        res.status(201).json({ data, message: 'Agendamento realizado com sucesso!' });
+    } catch (e) { next(e); }
+});
+
+app.get('/api/agendamentos', authMiddleware, async (req, res, next) => {
+    try {
+        const { status, data_inicio, data_fim } = req.query;
+        let query = supabase.from('agendamentos')
+            .select('*, imoveis(titulo, bairro)')
+            .order('data', { ascending: true });
+        if (status)      query = query.eq('status', status);
+        if (data_inicio) query = query.gte('data', data_inicio);
+        if (data_fim)    query = query.lte('data', data_fim);
+        const { data, error } = await query;
+        if (error) throw error;
+        res.json({ data });
+    } catch (e) { next(e); }
+});
+
+app.get('/api/agendamentos/disponibilidade', async (req, res, next) => {
+    try {
+        const { ano, mes } = req.query;
+        if (!ano || !mes) return res.status(400).json({ error: 'ano e mes são obrigatórios' });
+        const mesStr = `${ano}-${String(mes).padStart(2, '0')}`;
+
+        const [bloqueiosRes, agendamentosRes] = await Promise.all([
+            supabase.from('disponibilidade')
+                .select('data, bloqueado')
+                .gte('data', `${mesStr}-01`)
+                .lte('data', `${mesStr}-31`)
+                .catch(() => ({ data: [] })),
+            supabase.from('agendamentos')
+                .select('data')
+                .gte('data', `${mesStr}-01`)
+                .lte('data', `${mesStr}-31`)
+                .neq('status', 'cancelado')
+        ]);
+
+        res.json({
+            data: {
+                bloqueados: (bloqueiosRes.data || []).filter(d => d.bloqueado).map(d => d.data),
+                agendamentos: agendamentosRes.data || []
+            }
+        });
+    } catch (e) { next(e); }
+});
+
+app.put('/api/agendamentos/:id', authMiddleware, async (req, res, next) => {
+    try {
+        const { data, error } = await supabase.from('agendamentos')
+            .update(req.body).eq('id', req.params.id).select().single();
+        if (error) throw error;
+        res.json({ data });
+    } catch (e) { next(e); }
+});
+
+app.delete('/api/agendamentos/:id', authMiddleware, async (req, res, next) => {
+    try {
+        const { error } = await supabase.from('agendamentos').delete().eq('id', req.params.id);
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (e) { next(e); }
+});
+
+/* ══════════════════════════════════════════
    EQUIPE
 ══════════════════════════════════════════ */
 app.get('/api/equipe', async (req, res, next) => {
     try {
         const { data, error } = await supabase.from('equipe')
-            .select('*').order('ordem');
+            .select('*').eq('ativo', true).order('ordem');
         if (error) throw error;
         res.json({ data });
     } catch (e) { next(e); }
@@ -336,7 +428,7 @@ app.delete('/api/midias-home/:id', authMiddleware, async (req, res, next) => {
 app.get('/api/faq', async (req, res, next) => {
     try {
         const { data, error } = await supabase.from('faq')
-            .select('*').order('ordem');
+            .select('*').eq('ativo', true).order('ordem');
         if (error) throw error;
         res.json({ data });
     } catch (e) { next(e); }
@@ -374,7 +466,7 @@ app.delete('/api/faq/:id', authMiddleware, async (req, res, next) => {
 app.get('/api/depoimentos', async (req, res, next) => {
     try {
         const { data, error } = await supabase.from('depoimentos')
-            .select('*').order('ordem');
+            .select('*').eq('ativo', true).order('ordem');
         if (error) throw error;
         res.json({ data });
     } catch (e) { next(e); }
@@ -408,8 +500,6 @@ app.delete('/api/depoimentos/:id', authMiddleware, async (req, res, next) => {
 
 /* ══════════════════════════════════════════
    SEO  (tabela: seo_paginas)
-   GET /api/seo/:pagina
-   PUT /api/seo/:pagina
 ══════════════════════════════════════════ */
 app.get('/api/seo/:pagina', async (req, res, next) => {
     try {
@@ -432,24 +522,28 @@ app.put('/api/seo/:pagina', authMiddleware, async (req, res, next) => {
 
 /* ══════════════════════════════════════════
    CONTATOS / LEADS
+   POST /api/contato  (público — sem auth)
+   GET  /api/contatos (admin)
+   DELETE /api/contatos/:id (admin)
 ══════════════════════════════════════════ */
-app.get('/api/contatos', authMiddleware, async (req, res, next) => {
+app.post('/api/contato', async (req, res, next) => {
     try {
+        const { nome, email, telefone, mensagem, imovel_id, corretor_id } = req.body;
+        if (!nome || !mensagem) return res.status(400).json({ error: 'Nome e mensagem obrigatórios' });
         const { data, error } = await supabase.from('contatos')
-            .select('*').order('created_at', { ascending: false });
+            .insert([{ nome, email: email || null, telefone: telefone || null, mensagem, imovel_id: imovel_id || null, corretor_id: corretor_id || null }])
+            .select().single();
         if (error) throw error;
-        res.json({ data });
+        res.status(201).json({ data, message: 'Mensagem enviada com sucesso!' });
     } catch (e) { next(e); }
 });
 
-app.post('/api/contato', async (req, res, next) => {
+app.get('/api/contatos', authMiddleware, async (req, res, next) => {
     try {
-        const { nome, email, telefone, mensagem, imovel_id } = req.body;
-        if (!nome || !mensagem) return res.status(400).json({ error: 'Nome e mensagem obrigatórios' });
         const { data, error } = await supabase.from('contatos')
-            .insert([{ nome, email, telefone, mensagem, imovel_id }]).select().single();
+            .select('*, imoveis(titulo)').order('created_at', { ascending: false });
         if (error) throw error;
-        res.status(201).json({ data, message: 'Mensagem enviada!' });
+        res.json({ data });
     } catch (e) { next(e); }
 });
 
@@ -462,113 +556,7 @@ app.delete('/api/contatos/:id', authMiddleware, async (req, res, next) => {
 });
 
 /* ══════════════════════════════════════════
-   AGENDAMENTOS — ROTAS PÚBLICAS (sem auth)
-══════════════════════════════════════════ */
-
-// Retorna dias bloqueados + ocupação do mês para o formulário de agendamento público
-// GET /api/agendamentos/disponibilidade?mes=2026-06
-app.get('/api/agendamentos/disponibilidade', async (req, res, next) => {
-    try {
-        const mes = req.query.mes; // ex: "2026-06"
-        if (!mes || !/^\d{4}-\d{2}$/.test(mes)) {
-            return res.status(400).json({ error: 'Parâmetro "mes" inválido. Use o formato YYYY-MM' });
-        }
-        const inicio = `${mes}-01`;
-        const fim    = `${mes}-31`;
-
-        // Dias bloqueados pelo admin nesse mês
-        const { data: bloqueios, error: e1 } = await supabase
-            .from('disponibilidade')
-            .select('data, bloqueado')
-            .gte('data', inicio)
-            .lte('data', fim);
-        if (e1) throw e1;
-
-        // Agendamentos não-cancelados do mês (para contagem de vagas)
-        const { data: ags, error: e2 } = await supabase
-            .from('agendamentos')
-            .select('data')
-            .gte('data', inicio)
-            .lte('data', fim)
-            .neq('status', 'cancelado');
-        if (e2) throw e2;
-
-        // Monta diasOcupados: { "2026-06-15": 2, ... }
-        const diasOcupados = {};
-        (ags || []).forEach(a => {
-            diasOcupados[a.data] = (diasOcupados[a.data] || 0) + 1;
-        });
-
-        res.json({
-            bloqueios:    bloqueios    || [],
-            diasOcupados: diasOcupados
-        });
-    } catch (e) { next(e); }
-});
-
-// Cria novo agendamento (visitante)
-// POST /api/agendamentos
-app.post('/api/agendamentos', async (req, res, next) => {
-    try {
-        const campos = ['imovel_id', 'nome', 'whatsapp', 'data', 'periodo', 'status'];
-        for (const c of campos) {
-            if (!req.body[c]) return res.status(400).json({ error: `Campo obrigatório: ${c}` });
-        }
-        const { data, error } = await supabase
-            .from('agendamentos')
-            .insert({ ...req.body, created_at: new Date().toISOString() })
-            .select().single();
-        if (error) throw error;
-        res.status(201).json({ data });
-    } catch (e) { next(e); }
-});
-
-/* ══════════════════════════════════════════
-   AGENDAMENTOS — ADMIN (requer auth)
-══════════════════════════════════════════ */
-app.get('/api/agendamentos', authMiddleware, async (req, res, next) => {
-    try {
-        const { data, error } = await supabase.from('agendamentos')
-            .select('*').order('created_at', { ascending: false });
-        if (error) throw error;
-        res.json({ data });
-    } catch (e) { next(e); }
-});
-
-app.patch('/api/agendamentos/:id', authMiddleware, async (req, res, next) => {
-    try {
-        const { data, error } = await supabase.from('agendamentos')
-            .update(req.body)
-            .eq('id', req.params.id)
-            .select().single();
-        if (error) throw error;
-        res.json({ data });
-    } catch (e) { next(e); }
-});
-
-/* ══════════════════════════════════════════
-   DISPONIBILIDADE (bloqueio de dias)
-══════════════════════════════════════════ */
-app.get('/api/disponibilidade', authMiddleware, async (req, res, next) => {
-    try {
-        const { data, error } = await supabase.from('disponibilidade').select('*');
-        if (error) throw error;
-        res.json({ data });
-    } catch (e) { next(e); }
-});
-
-app.post('/api/disponibilidade', authMiddleware, async (req, res, next) => {
-    try {
-        const { data, error } = await supabase.from('disponibilidade')
-            .upsert(req.body, { onConflict: 'data' })
-            .select().single();
-        if (error) throw error;
-        res.json({ data });
-    } catch (e) { next(e); }
-});
-
-/* ══════════════════════════════════════════
-   FALLBACK
+   FALLBACK SPA
 ══════════════════════════════════════════ */
 app.get('*', (req, res) => {
     if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Rota não encontrada' });
@@ -587,27 +575,22 @@ app.use((err, req, res, next) => {
 /* ══════════════════════════════════════════
    INICIALIZAÇÃO
 ══════════════════════════════════════════ */
-// Vercel: exporta o app para @vercel/node usar como handler serverless.
-// Local:  sobe o servidor normalmente via app.listen().
-if (require.main === module) {
-    const PORT = process.env.PORT || 3000;
-    const server = app.listen(PORT, () => {
-        console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
-    });
-    server.on('error', (err) => {
-        if (err.code === 'EADDRINUSE') {
-            console.error(`❌ Porta ${PORT} já está em uso.`);
-        } else { console.error('❌ Erro:', err); }
-        process.exit(1);
-    });
-    const shutdown = (sig) => {
-        console.log(`\n⚠️  ${sig} — encerrando...`);
-        server.close(() => { console.log('✅ Encerrado.'); process.exit(0); });
-    };
-    process.on('SIGTERM', () => shutdown('SIGTERM'));
-    process.on('SIGINT',  () => shutdown('SIGINT'));
-    process.on('uncaughtException',  err    => { console.error('❌', err); process.exit(1); });
-    process.on('unhandledRejection', reason => { console.error('❌', reason); process.exit(1); });
-}
+const PORT = process.env.PORT || 3000;
+const server = app.listen(PORT, () => {
+    console.log(`🚀 Servidor rodando na porta ${PORT}`);
+});
 
-module.exports = app;
+server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`❌ Porta ${PORT} em uso.`);
+    } else { console.error('❌ Erro:', err); }
+    process.exit(1);
+});
+
+const shutdown = (sig) => {
+    console.log(`\n⚠️  ${sig} — encerrando...`);
+    server.close(() => { console.log('✅ Encerrado.'); process.exit(0); });
+};
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT',  () => shutdown('SIGINT'));
+process.on('uncaughtException', err => { console.error('❌', err); process.exit(1); });

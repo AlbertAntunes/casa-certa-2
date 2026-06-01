@@ -493,12 +493,7 @@
 
 <script src="admin.js"></script>
 <script>
-  // ============================================================
-  // CONFIGURAÇÃO — substitua pelos seus valores
-  // ============================================================
-  const SUPABASE_URL  = 'https:uuihfrocfeymztydrnsn.supabase.co';
-  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1aWhmcm9jZmV5bXp0eWRybnNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzkyNDYsImV4cCI6MjA5NDcxNTI0Nn0.mtSRERwAd7pzlxEeaF-7WDJ3xPFWi7SUz22PVd-a6YQ';
-  // ============================================================
+  // Agendamentos usa apiFetch (admin.js) → rotas /api/* com JWT + service_key
 
   let currentYear, currentMonth;
   let agendamentos = [], bloqueios = [];
@@ -529,69 +524,12 @@
     renderList();
     updateStats();
   }
-// Esta função é o que falta para fazer o status mudar de verdade
-async function alterarStatus(id, novoStatus) {
-    try {
-        // 1. Envia para o Supabase (estou assumindo que você usa uma função global ou 'sb' para acessar)
-        // Substitua 'sb' pelo nome da sua variável de cliente do Supabase
-        const { error } = await sb
-            .from('agendamentos')
-            .update({ status: novoStatus })
-            .eq('id', id);
 
-        if (error) throw error;
-
-        // 2. Atualiza o array local para não precisar dar F5
-        const index = agendamentos.findIndex(a => a.id === id);
-        if (index !== -1) {
-            agendamentos[index].status = novoStatus;
-        }
-
-        // 3. Atualiza a interface
-        renderList();     // Redesenha a lista
-        updateStats();    // Recalcula os totais (Pendente, Cancelado, etc.)
-        
-        // 4. Feedback visual
-        toast(`Agendamento atualizado para ${novoStatus}!`, 'success');
-
-    } catch (err) {
-        console.error(err);
-        toast('Erro ao atualizar status', 'error');
-    }
-}
-  // ── SUPABASE ──
-  async function sbFetch(path, options = {}) {
-
-  const finalHeaders = {
-    apikey: SUPABASE_ANON,
-    Authorization: `Bearer ${SUPABASE_ANON}`,
-    'Content-Type': 'application/json',
-    Prefer: 'return=representation',
-    ...(options.headers || {})
-  };
-
-  console.log('HEADERS:', finalHeaders);
-
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    ...options,
-    headers: finalHeaders
-  });
-
-  const text = await res.text();
-
-  console.log('STATUS:', res.status);
-  console.log('RESPONSE:', text);
-
-  if (!res.ok) {
-    throw new Error(text);
-  }
-
-  return text ? JSON.parse(text) : null;
-}
 
   async function loadAgendamentos() {
     try {
-      agendamentos = await sbFetch('agendamentos?select=*&order=created_at.desc');
+      const res = await apiFetch('/agendamentos');
+      agendamentos = res.data || [];
     } catch(e) {
       agendamentos = [];
       showToast('⚠️ Erro ao carregar agendamentos', 'error');
@@ -600,7 +538,8 @@ async function alterarStatus(id, novoStatus) {
 
   async function loadBloqueios() {
     try {
-      bloqueios = await sbFetch('disponibilidade?select=*');
+      const res = await apiFetch('/disponibilidade');
+      bloqueios = res.data || [];
     } catch(e) {
       bloqueios = [];
     }
@@ -608,30 +547,6 @@ async function alterarStatus(id, novoStatus) {
 
   // ── STATS ──
   function updateStats() {
-    async function alterarStatus(id, novoStatus) {
-    // 1. Atualiza no Banco de Dados
-    const { error } = await supabase
-        .from('agendamentos')
-        .update({ status: novoStatus })
-        .eq('id', id);
-
-    if (error) {
-        alert("Erro ao salvar no banco: " + error.message);
-        return;
-    }
-
-    // 2. Atualiza no Array Local (o que o JavaScript vê)
-    const index = agendamentos.findIndex(a => a.id === id);
-    if (index !== -1) {
-        agendamentos[index].status = novoStatus;
-    }
-
-    // 3. Atualiza a tela e os números do dashboard
-    renderList();     // Atualiza a lista visual
-    updateStats();    // Atualiza os contadores de "Pendente", "Cancelado", etc.
-
-    alert("Status alterado com sucesso!");
-}
     const mesStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
     const doMes  = agendamentos.filter(a => a.data && a.data.startsWith(mesStr));
     document.getElementById('stPendente').textContent   = agendamentos.filter(a => a.status === 'pendente').length;
@@ -725,9 +640,8 @@ async function alterarStatus(id, novoStatus) {
 
   async function toggleDay(str, currentlyBlocked) {
     try {
-      await sbFetch('disponibilidade', {
+      await apiFetch('/disponibilidade', {
         method: 'POST',
-        headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
         body: JSON.stringify({ data: str, bloqueado: !currentlyBlocked })
       });
       await loadBloqueios();
@@ -804,12 +718,16 @@ async function alterarStatus(id, novoStatus) {
       reagendado: `<span class="status-badge status-reagendado">🔄 Reagendado</span>`,
     };
 
-    const actions = a.status !== 'cancelado' ? `
-      <button class="btn btn-secondary btn-sm" onclick="confirmarAg('${a.id}')">✅ Confirmar</button>
-      <button class="btn btn-ghost btn-sm" onclick="reagendarAg('${a.id}','${a.data}','${a.periodo}')">🔄 Reagendar</button>
-      <button class="btn btn-danger btn-sm" onclick="cancelarAg('${a.id}','${esc(a.nome)}')">❌ Cancelar</button>
-      <button class="btn btn-ghost btn-sm" onclick="addNota('${a.id}')">📝 Nota</button>
-      <button class="btn btn-ghost btn-sm" onclick="notificarCliente('${a.whatsapp}','${esc(a.nome)}','${a.data}','${a.periodo}','${a.status}')">📲 WhatsApp</button>` : '';
+    const confirmarBtn = (a.status === 'pendente' || a.status === 'reagendado')
+      ? `<button class="btn btn-secondary btn-sm" onclick="confirmarAg('${a.id}')">✅ Confirmar</button>` : '';
+    const reagendarBtn = a.status !== 'cancelado'
+      ? `<button class="btn btn-ghost btn-sm" onclick="reagendarAg('${a.id}','${a.data}','${a.periodo}')">🔄 Reagendar</button>` : '';
+    const cancelarBtn  = a.status !== 'cancelado'
+      ? `<button class="btn btn-danger btn-sm" onclick="cancelarAg('${a.id}','${esc(a.nome)}')">❌ Cancelar</button>` : '';
+    const notaBtn      = a.status !== 'cancelado'
+      ? `<button class="btn btn-ghost btn-sm" onclick="addNota('${a.id}')">📝 Nota</button>` : '';
+    const whatsappBtn  = `<button class="btn btn-ghost btn-sm" onclick="notificarCliente('${a.whatsapp}','${esc(a.nome)}','${a.data}','${a.periodo}','${a.status}')">📲 WhatsApp</button>`;
+    const actions = confirmarBtn + reagendarBtn + cancelarBtn + notaBtn + whatsappBtn;
 
     const obs  = a.observacao    ? `<div class="ag-obs"><span class="ag-obs-label">Observação do cliente</span>${esc(a.observacao)}</div>` : '';
     const nota = a.nota_interna  ? `<div class="ag-obs"><span class="ag-obs-label">📝 Nota interna</span>${esc(a.nota_interna)}</div>` : '';
@@ -838,7 +756,7 @@ async function alterarStatus(id, novoStatus) {
   // ── AÇÕES ──
   async function updateStatus(id, status, extra = {}) {
     try {
-      await sbFetch(`agendamentos?id=eq.${id}`, {
+      await apiFetch(`/agendamentos/${id}`, {
         method: 'PATCH',
         body: JSON.stringify({ status, ...extra })
       });
@@ -949,9 +867,8 @@ async function alterarStatus(id, novoStatus) {
     const datas = getDatesInRange(start, end);
     try {
       for (const dt of datas) {
-        await sbFetch('disponibilidade', {
+        await apiFetch('/disponibilidade', {
           method: 'POST',
-          headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
           body: JSON.stringify({ data: dt, bloqueado: bloquear })
         });
       }
@@ -1025,4 +942,4 @@ async function alterarStatus(id, novoStatus) {
   init();
 </script>
 </body>
-</html>
+</html> 

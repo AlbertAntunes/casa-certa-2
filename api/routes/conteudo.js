@@ -46,7 +46,7 @@ router.delete('/faq/:id', auth, async (req, res) => {
   res.json({ message: 'Removido' });
 });
 
-/* ── BANNERS / MARQUEE ── */
+/* ── BANNERS /  ── */
 router.get('/banners', async (_req, res) => {
   const { data, error } = await sb.from('banners').select('*').order('ordem');
   if (error) return res.status(500).json({ message: error.message });
